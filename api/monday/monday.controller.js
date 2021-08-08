@@ -11,6 +11,7 @@ const monday = initMondayClient()
 
 
 async function getInter(req, res) {
+  console.log('are you hereeeeeeee');
   const body = req.body
   try {
     const { shortLivedToken } = req.session
@@ -272,6 +273,9 @@ async function filterBoards(filteredBoards, username) {
             }
         }
     }`
+    // setTimeout(() => {
+      
+    // }, timeout);
     const res = await monday.api(query)
     boardsWithItems.push(res)
 
