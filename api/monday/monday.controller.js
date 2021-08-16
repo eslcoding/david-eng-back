@@ -44,7 +44,7 @@ async function getInter(req, res) {
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
 
     let users = await getDraftsmenUsers(filteredBoards)
-
+    console.log('done with users');
     users.forEach(async user => {
 
       const itemsByBoards = await filterBoards(filteredBoards, user.name)
@@ -232,6 +232,7 @@ async function getCsvTable(itemsByBoards, draftsmanName, dateFolderId, draftsman
   // }, csvRes)
 
   csvResults.forEach(async csvRes => {
+    console.log('CSV injecttttttt');
     await handleGoogleDrive('file', csvRes)
 
 
@@ -273,11 +274,9 @@ async function filterBoards(filteredBoards, username) {
             }
         }
     }`
-    // setTimeout(() => {
-      
-    // }, timeout);
     const res = await monday.api(query)
     boardsWithItems.push(res)
+
 
   }
   console.log('test33333333333333333333333333333333333333333333333333333333333333333');
