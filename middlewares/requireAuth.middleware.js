@@ -30,17 +30,21 @@ module.exports = {
 
 
 async function authenticationMiddleware(req, res, next) {
+  console.log('req.query: ', req.query);
+  
   const jwt = require('jsonwebtoken');
-
   try {
     let { authorization } = req.headers;
     if (!authorization && req.query) {
       authorization = req.query.token;
     }
-    const { accountId, userId, backToUrl, shortLivedToken } = jwt.verify(
+    const jwtRes = jwt.verify(
       authorization,
       process.env.MONDAY_SIGNING_SECRET
     );
+    const timeDiff = jwtRes.exp - jwtRes.iat
+
+    const { accountId, userId, backToUrl, shortLivedToken } = jwtRes
     req.session = { accountId, userId, backToUrl, shortLivedToken };
     next();
   } catch (err) {

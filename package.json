@@ -5,7 +5,7 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "dev-start": "nodemon --ignore './public' server.js",
+        "dev-start": "nodemon --ignore './' server.js",
         "server:prod": "node server.js"
     },
     "author": "ESL",

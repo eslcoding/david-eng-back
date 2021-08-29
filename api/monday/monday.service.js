@@ -1,5 +1,7 @@
 const initMondayClient = require('monday-sdk-js');
 const nodemailer = require('nodemailer');
+const dbService = require('../../services/db.service');
+
 
 const titles = ["סטטוס שרטוט", "שרטט", "גרסה", "תאריך תכנית", "סטטוס תכנית", "ראש צוות", "בקר", "מהנדס", "תאריך שרטוט", "שעות עבודה במצטבר", "שעות עבודה חודש נוכחי"]
 
@@ -116,6 +118,62 @@ function isHebrew(str) {
   return false
 }
 
+/*
+* replaceDb and getDb ar both for trying to solve the to many request per time error
+*/
+async function replaceDb(data) {
+  // console.log('replaceDb -> data', data)
+  console.log('replace db');
+  const collection = await dbService.getCollection('monday_data')
+  try {
+    const testRes = await collection.replaceOne({ "key": data.key }, data)
+    if (!testRes.matchedCount) {
+      await collection.insertOne(data)
+    }
+    return
+  } catch (err) {
+    console.log('ERROR: fill db', err)
+    throw err;
+  }
+
+}
+
+async function getDb(key) {
+  const collection = await dbService.getCollection('monday_data')
+  try {
+    return await collection.findOne({ key })
+  } catch (err) {
+    console.log('ERROR: fill db', err)
+    throw err;
+  }
+
+}
+
+
+// async function mappingScript() {
+//   const collection = await dbService.getCollection('prefix')
+//   try {
+//     const prefixs = await collection.find({ srcColId: { $regex: /project_prefix/i } }).toArray();
+//     // const prefixs = await collection.find().toArray();
+//     const prefixMap = prefixs.reduce((_prefixMap, prefixObj) => {
+//       for (let key in prefixObj.map) {
+//         _prefixMap[key] ??= 0
+//         _prefixMap[key] += prefixObj.map[key]
+//       }
+//       return _prefixMap
+//     }, {})
+
+
+//     const mapCollection = await dbService.getCollection('prefixMap')
+//     mapCollection.insertOne(prefixMap)
+
+//     return prefixs
+//   } catch (err) {
+//     console.log('ERROR: cannot find prefix', err)
+//     throw err;
+//   }
+// }
+
 
 
 function sendEmail(to = 'anistu@gmail.com', subject = 'thank you', text = "hey", data) {
@@ -168,5 +226,7 @@ module.exports = {
   getFilteredColVals,
   getTitles,
   getFormattedValue,
-  sendEmail
+  sendEmail,
+  replaceDb,
+  getDb
 }

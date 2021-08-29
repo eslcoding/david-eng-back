@@ -1,35 +1,3 @@
-// var dbConn = null;
-
-// function connectToMongo() {
-//     // Reuse existing connection if exist
-//     if (dbConn) return Promise.resolve(dbConn);
-//     const MongoClient = require('mongodb').MongoClient;
-    
-//     // const url = (!process.env.PORT)? 
-//     //                 'mongodb://localhost:27017/prefix_db' : 'mlab url'
-//     const url = 'mongodb://localhost:27017/prefix_db'
-//     // const url = 'mongodb+srv://eslcoding:Coding11@cluster0.r0pfj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
-    
-//     return MongoClient.connect(url)
-//         .then(client => {
-//             console.log('Connected to MongoDB');
-
-//             // If we get disconnected (e.g. db is down)
-//             client.on('close', ()=>{
-//                 console.log('MongoDB Diconnected!');
-//                 dbConn = null;
-//             })
-//             dbConn = client.db()
-//             return dbConn;
-//         })
-// }
-
-// module.exports = {
-//     connect : connectToMongo
-// }
-
-
-
 
 
 
@@ -44,7 +12,7 @@ module.exports = {
 }
 
 // Database Name
-const dbName = 'prefix_db';
+const dbName = 'davideng_db';
 
 var dbConn = null;
 
@@ -54,7 +22,9 @@ async function getCollection(collectionName) {
 }
 
 async function connect() {
-    const url = 'mongodb+srv://eslcoding:Coding11@cluster0.r0pfj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+    // mongodb+srv://eslcoding:<password>@cluster0.r0pfj.mongodb.net/test
+    // const url = 'mongodb+srv://eslcoding:Coding11@cluster0.r0pfj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+    const url = 'mongodb+srv://eslcoding:Coding11@cluster0.r0pfj.mongodb.net/test'
     if (dbConn) return dbConn;
     try {
         const client = await MongoClient.connect(url, { useUnifiedTopology: true, useNewUrlParser: true });
