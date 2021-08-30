@@ -5,7 +5,7 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "dev-start": "nodemon --ignore './' server.js",
+        "dev-start": "nodemon --ignore './services/print.json' server.js",
         "server:prod": "node server.js"
     },
     "author": "ESL",
@@ -22,6 +22,8 @@
         "googleapis": "^39.2.0",
         "json2csv": "^5.0.6",
         "jsonwebtoken": "^8.5.1",
+        "jspdf": "^2.3.1",
+        "jspdf-autotable": "^3.5.20",
         "monday-sdk-js": "^0.1.2",
         "mongodb": "^3.6.3",
         "node-fetch": "^2.6.1",

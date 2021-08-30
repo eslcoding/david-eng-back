@@ -19,7 +19,8 @@ const fs = require('fs')
 
 function saveAndPrintJson(data) {
   console.log('printing to Json');
-  fs.writeFileSync('./print.json', JSON.stringify(data, null, 2));
+  // fs.writeFileSync('./print.json', JSON.stringify(data, null, 2));
+  fs.writeFileSync('./services/print.json', JSON.stringify(data, null, 2));
 }
 
 module.exports = {

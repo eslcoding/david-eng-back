@@ -9,12 +9,13 @@ function getDraftsmanBoard(boards) {
   return boards.filter((board) => {
     if (board.name.includes('סידור שבועי')) return false
 
-    let isIncludeBoard = false
+    let isIncludeBoardDraft = false
+    let isIncludeBoardDate = false
     board.columns.forEach(col => {
 
       if (col.title === 'שרטט') {
         board.colsToUse = { ...board.colsToUse, draftId: col.id }
-        isIncludeBoard = true
+        isIncludeBoardDraft = true
       }
 
       if (col.title === 'סטטוס שרטוט') {
@@ -23,10 +24,11 @@ function getDraftsmanBoard(boards) {
 
       if (col.title === 'תאריך תכנית') {
         board.colsToUse = { ...board.colsToUse, dateId: col.id }
+        isIncludeBoardDate = true
       }
 
     })
-    return isIncludeBoard
+    return isIncludeBoardDraft && isIncludeBoardDate
   })
 }
 
