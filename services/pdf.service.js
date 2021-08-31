@@ -1,22 +1,15 @@
+const { isHebrew } = require('./utils.service')
 
 module.exports = {
   buildTablesPDF
 }
 
 
-function _isHebrew(str) {
-  for (let i = 0; i < str.length; i++) {
-      const letterAscii = str.charCodeAt(i);
-      if (letterAscii >= 1488 && letterAscii <= 1514) {
-          return true
-      }
-  }
-  return false
-}
 
 
 
-async function buildTablesPDF(filename = 'data/test2.pdf') {
+
+async function buildTablesPDF(boardsBodyAndHead) {
 
   global.window = {}
 
@@ -25,42 +18,61 @@ async function buildTablesPDF(filename = 'data/test2.pdf') {
 
   const { applyPlugin } = require('../data/cdnjs/jspdf.plugin.autotable.min')
   applyPlugin(jsPDF)
-  const doc = new jsPDF()
+  const doc = new jsPDF('l', 'mm', 'a4')
   doc.addFileToVFS("MyFont.ttf", myFont);
   doc.addFont("MyFont.ttf", "MyFont", "normal");
   doc.setFont("MyFont");
-  // doc.setR2L(true)
+  boardsBodyAndHead.forEach((BodyAndHead, idx) => {
 
-  doc.autoTable({
-    styles: {
-      font: 'MyFont',
-      fontSize: 12,
-      halign: 'right',
-    },
-    head: [['ID', 'Name', 'Email', 'Country', 'IP-address']],
-    body: [
-      ['1', 'דני', 'dmoore0@furl.net', 'China', '211.56.242.221'],
-      ['2', 'סתו', 'jhenry1@theatlantic.com', 'Ukraine', '38.36.7.199'],
-      ['3', 'יובל', 'rwells2@example.com', 'Trinidad', '19.162.133.184'],
-      ['4', 'יוסי', 'jray3@psu.edu', 'Brazil', '10.68.11.42'],
-      ['5', 'Jane', 'jstephens4@go.com', 'United States', '47.32.129.71'],
-      ['6', 'Adam', 'anichols5@com.com', 'Canada', '18.186.38.37'],
-    ],
+    doc.setR2L(true)
+    console.log('doc.lastAutoTable.finalY: ', doc.lastAutoTable.finalY);
 
-    willDrawCell: (data) => {
-      const { doc, cell: { raw } } = data
-      const isDateReg = /\d{4}\/\d{2}\/\d{2}/g
-      let isR2L = true
-      if (!isDateReg.test(raw) && !_isHebrew(raw || '')) {
+    const startYPos = !doc.lastAutoTable.finalY ? 10 : doc.lastAutoTable.finalY + 40
+    doc.autoTable({
+      theme: 'grid',
+      headStyles: { fillColor: '#2B80BA' },
+      footStyles: { fillColor: '#ffffff', textColor: '#000000', cellWidth: 'wrap', halign: 'center' },
+      alternateRowStyles: { fillColor: '#f0f0f0' },
+      styles: {
+        font: 'MyFont',
+        fontSize: 11,
+        halign: 'right',
+      },
+      rowPageBreak: 'avoid',
+      startY: startYPos,
+      // showHead: 'firstPage',
+
+      minCellWidth: 150,
+
+      head: [BodyAndHead.head],
+      body: BodyAndHead.body,
+      foot: [[{ content: BodyAndHead.boardName, colSpan: BodyAndHead.head.length, rowSpan: 1, styles: { halign: 'center', fontStyle: 'bold', fontSize: 13, cellPadding: 5 } }]],
+
+      willDrawCell: (data) => {
+
+        const { doc, cell } = data
+        // if (cell.section === 'foot' && !idx) {
+        //   console.log('cell: ', cell);
+        // }
+
+        const { raw } = cell
+        const isDateReg = /\d{4}\/\d{2}\/\d{2}/g
+        let isR2L = true
+        if (!isDateReg.test(raw) && !isHebrew(raw || '')) {
           isR2L = false
-      }
-      doc.setR2L(isR2L)
+        }
+        if (cell.section === 'foot') {
+          isR2L = isHebrew(BodyAndHead.boardName)
+        }
+        doc.setR2L(isR2L)
 
-  },
+      },
+    })
   })
 
   const data = doc.output()
   fs.writeFileSync('./document.pdf', data, 'binary')
+  return data
 }
 
 

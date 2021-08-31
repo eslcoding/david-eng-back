@@ -1,6 +1,7 @@
 const initMondayClient = require('monday-sdk-js');
 const nodemailer = require('nodemailer');
 const dbService = require('../../services/db.service');
+const { isHebrew } = require('../../services/utils.service');
 
 
 const titles = ["סטטוס שרטוט", "שרטט", "גרסה", "תאריך תכנית", "סטטוס תכנית", "ראש צוות", "בקר", "מהנדס", "תאריך שרטוט", "שעות עבודה במצטבר", "שעות עבודה חודש נוכחי"]
@@ -110,15 +111,15 @@ function reverse(str) {
 }
 
 
-function isHebrew(str) {
-  for (let i = 0; i < str.length; i++) {
-    const letterAscii = str.charCodeAt(i);
-    if (letterAscii >= 1488 && letterAscii <= 1514) {
-      return true
-    }
-  }
-  return false
-}
+// function isHebrew(str) {
+//   for (let i = 0; i < str.length; i++) {
+//     const letterAscii = str.charCodeAt(i);
+//     if (letterAscii >= 1488 && letterAscii <= 1514) {
+//       return true
+//     }
+//   }
+//   return false
+// }
 
 /*
 * replaceDb and getDb ar both for trying to solve the to many request per time error

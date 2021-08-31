@@ -4,7 +4,7 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const path = require('path')
 const cookieParser = require('cookie-parser')
-
+var printObj;
 const app = express()
 const http = require('http').createServer(app);
 
@@ -13,6 +13,8 @@ const mondayRoutes = require('./api/monday/monday.routes')
 const googledriveAuthRoutes = require('./api/googledriveAuth/googledriveAuth.routes')
 const mondayWebHookRoutes = require('./api/monday/monday.webhook.routes')
 const config = require('./config')
+
+global.log = {}
 
 app.use(cookieParser())
 app.use(bodyParser.json()); //  content type appliaction/Json (header)
@@ -51,13 +53,16 @@ app.use('/api/googledriveAuth', googledriveAuthRoutes)
 app.use('/api/monday', mondayRoutes)
 app.use('/', mondayWebHookRoutes)
 
-// app.get('/*', function(req,res) {
-//     // res.sendFile(path.resolve(__dirname, 'public/taskpane.html'))
-//     res.send('HELLOOOOOO')
-// })
+
+app.get('/', (req, res)=>{
+    res.send(global.log)
+})
+
 
 const logger = require('./services/logger.service')
 const port = process.env.PORT || 3030;
 http.listen(port, () => {
     logger.info('Server is running on port: ' + port)
 });
+
+

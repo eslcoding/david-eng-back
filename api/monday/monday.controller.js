@@ -1,10 +1,10 @@
 const mondayService = require('./monday.service');
+const utilsService = require('../../services/utils.service');
 const initMondayClient = require('monday-sdk-js');
 const nodemailer = require('nodemailer');
 const { parse } = require('json2csv');
 const { handleGoogleDrive } = require('../../services/googleDriveService/googleDrive.service');
 const { buildTablesPDF } = require('../../services/pdf.service');
-const { saveAndPrintJson } = require('../../services/printService');
 
 var gDateFolderId;
 const monday = initMondayClient()
@@ -112,7 +112,9 @@ async function interStage2(filteredBoards) {
 
 /*ORIGINAL START*/
 async function interStage3(users, filteredBoards, itemsColVals) {
-  /* FOR TESTING  REMOVE LATER */
+  /* 
+  !FOR TESTING  REMOVE LATER 
+  */
   // users = users.slice(0, 1)
 
   try {
@@ -121,10 +123,10 @@ async function interStage3(users, filteredBoards, itemsColVals) {
 
       // await sleep(1000)
       const itemsByBoards = await filterBoards(filteredBoards, user.name, itemsColVals)
-      console.log('after filterBoards', itemsByBoards, 'after filterBoards');
       if (Object.keys(itemsByBoards).length) {
         const { folderId: draftsmanFolderId } = await handleGoogleDrive('folder', { name: user.name, parentId: gDateFolderId })
-        await getCsvTable(itemsByBoards, user.name, gDateFolderId, draftsmanFolderId)
+        await getCsvTable(itemsByBoards, user.name, draftsmanFolderId)
+        await getPdfTable(itemsByBoards, user.name, draftsmanFolderId)
       }
 
     }
@@ -136,7 +138,6 @@ async function interStage3(users, filteredBoards, itemsColVals) {
   }
 }
 /*ORIGINAL END*/
-
 
 function sleep(ms = 0) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -175,7 +176,7 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   console.log('filterBoards -> username', username)
 
   const searchTerm = {
-    date: { end: '2022-08-01', start: '2019-08-01' },
+    date: utilsService.getDateRange(),
     draftsman: { nameStr: username }
     /* 
     !TESTING!!! REMOVE LATER 
@@ -296,7 +297,7 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
 
 }
 
-async function getCsvTable(itemsByBoards, draftsmanName, dateFolderId, draftsmanFolderId) {
+async function getCsvTable(itemsByBoards, draftsmanName, draftsmanFolderId) {
 
   // var query = `query {boards (limit: 1000) {
   //   name
@@ -357,17 +358,17 @@ async function getCsvTable(itemsByBoards, draftsmanName, dateFolderId, draftsman
         return csvRes
       }, csvRes)
 
-      return { filename: `${draftsmanName}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId }
+      return { filename: `${draftsmanName}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'application/csv' }
     })
 
 
 
-
-    for (let csvRes of csvResults) {
+    await Promise.all(csvResults.map(csvRes => {
       console.log('CSV injecttttttt');
-      await handleGoogleDrive('file', csvRes)
+      return handleGoogleDrive('file', csvRes)
+    }))
 
-    }
+
   } catch (err) {
     console.log('err: ', err);
     throw err
@@ -379,6 +380,36 @@ async function getCsvTable(itemsByBoards, draftsmanName, dateFolderId, draftsman
   // mondayService.sendEmail('anistu@gmail.com', 'test title', 'test text', csvResults)
 
 }
+
+
+async function getPdfTable(itemsByBoards, draftsmanName, draftsmanFolderId) {
+
+  try {
+    const itemsVals = Object.values(itemsByBoards)
+    let items = itemsVals.map(mondayService.getDateFilteredItems)
+    items = mondayService.getFilteredColVals(items).filter(items => items.length)
+    console.log('printing');
+    let head = [`שם תכנית`, ...utilsService.getTitlesReverse(items[0])]
+
+
+    const boardsBodyAndHead = utilsService.getTablesBodyAndHead(items)
+    utilsService.sendLog('boardsBodyAndHead', boardsBodyAndHead)
+    const pdfContent = await buildTablesPDF(boardsBodyAndHead)
+    await handleGoogleDrive('file', { filename: draftsmanName + '.pdf', mimeType: 'application/pdf', content: pdfContent, parentId: draftsmanFolderId })
+  } catch (err) {
+    console.log('err in getPDfTable: ', err);
+    throw err
+
+  }
+
+  // return Promise.resolve()
+
+  // mondayService.sendEmail('anistu@gmail.com', 'test title', 'test text', csvResults)
+
+}
+
+
+
 
 async function getDraftsmenUsers(filteredBoards) {
   try {
@@ -497,7 +528,9 @@ async function onUpdateColumns(req, res) {
     const _res = await monday.api(query)
 
     const { boards } = _res.data
+
     const items = boards[0].items
+
     /*
     * making an map object for each item with the item's id as the key,
     * and the items mutation data object as the value
@@ -515,7 +548,7 @@ async function onUpdateColumns(req, res) {
       return acc
 
     }, {})
-
+    [{ 123123123123: { from: { text: 312, id: 33412312312 } } }]
     await updateColumns(itemsColValsMap, boardId)
   } catch (err) {
     console.log('err: ', err);
@@ -546,11 +579,14 @@ async function updateColumns(itemsColValsMap, boardId) {
   return Promise.all(prmMutations)
 }
 
+async function trying() {
+  const pdfContent = await buildTablesPDF()
+  handleGoogleDrive('upload', { filename: 'pdfTest', mimeType: 'application/pdf', content: pdfContent })
+}
 
 
 
-
-
+// trying()
 // buildTablesPDF()
 
 

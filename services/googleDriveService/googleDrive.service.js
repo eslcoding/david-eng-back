@@ -136,7 +136,7 @@ function uploadFile(auth, data) {
     if (data.parentId) fileMetadata.parents = [data.parentId]
 
     var media = {
-      mimeType: 'application/csv',
+      mimeType: data.mimeType,
       // body: fs.createReadStream('files/photo.jpg')
       body: data.content
     };
