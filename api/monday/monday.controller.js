@@ -62,6 +62,56 @@ async function getInter(req, res) {
   }
 }
 
+async function getInterTest(req, res) {
+  // return res.end()
+  const body = req.body
+  try {
+    const { shortLivedToken } = req.session
+    // const monday = initMondayClient()
+    monday.setToken(shortLivedToken)
+    const date = new Date().toDateString().replace(/ /ig, '_')
+    const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: date })
+    gDateFolderId = dateFolderId
+    // return
+
+
+    let query = `query 
+    {
+      boards (limit: 2000) {
+      name
+      id
+      columns {
+        id
+        title
+        type
+        settings_str
+        
+      }
+    }}`
+    const result = await monday.api(query)
+    const _boards = result.data.boards
+    const filteredBoards = mondayService.getDraftsmanBoard(_boards)
+    /*TEST START*/
+    await sleep()
+    await interStage2(filteredBoards)
+    /*TEST END*/
+
+    /*ORIGINAL START*/
+    // await mondayService.replaceDb({ boards: filteredBoards, key: 'boards' })
+    // return await deleyFunc(interStage2, 1000 * 30 * 0.1, res)
+    /*ORIGINAL END*/
+
+    console.log('done?');
+
+  } catch (err) {
+    console.log('get interrrrrr   err: ', err);
+  } finally {
+    console.log('is end?');
+    return res.end()
+
+  }
+}
+
 
 
 async function interStage2(filteredBoards) {
@@ -181,10 +231,7 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   const searchTerm = {
     date: utilsService.getDateRange(),
     draftsman: { nameStr: username }
-    /* 
-    !TESTING!!! REMOVE LATER 
-    */
-    // draftsman: { nameStr: 'Leon Bogakovsky' }
+    
   }
 
 
@@ -348,7 +395,7 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
         return csvRes
       }, csvRes)
 
-      return { filename: `${draftsmanName}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'application/csv' }
+      return { filename: `${draftsmanName}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'text/csv' }
     })
 
 
@@ -666,6 +713,7 @@ async function testMailPdf(req, res) {
 module.exports = {
   getInter,
   onUpdateColumns,
-  testMailPdf
+  testMailPdf,
+  getInterTest
 };
 

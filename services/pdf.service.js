@@ -35,8 +35,8 @@ async function buildTablesPDF(boardsBodyAndHead) {
       alternateRowStyles: { fillColor: '#f0f0f0' },
       styles: {
         font: 'MyFont',
-        fontSize: 11,
-        halign: 'right',
+        fontSize: 10,
+        // halign: 'right',
       },
       rowPageBreak: 'avoid',
       startY: startYPos,
@@ -48,13 +48,17 @@ async function buildTablesPDF(boardsBodyAndHead) {
       body: BodyAndHead.body,
       foot: [[{ content: BodyAndHead.boardName, colSpan: BodyAndHead.head.length, rowSpan: 1, styles: { halign: 'center', fontStyle: 'bold', fontSize: 13, cellPadding: 5 } }]],
 
+      didParseCell: (data) => {
+        if (data.section === 'foot') return
+        let halign = (isHebrew(data.cell.text[0])) ? 'right' : 'left'
+        data.cell.styles.halign = halign
+
+      },
+
       willDrawCell: (data) => {
 
         const { doc, cell } = data
-        // if (cell.section === 'foot' && !idx) {
-        //   console.log('cell: ', cell);
-        // }
-
+        
         const { raw } = cell
         const isDateReg = /\d{4}\/\d{2}\/\d{2}/g
         let isR2L = true
@@ -67,6 +71,8 @@ async function buildTablesPDF(boardsBodyAndHead) {
         doc.setR2L(isR2L)
 
       },
+
+
     })
   })
 
