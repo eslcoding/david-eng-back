@@ -18,7 +18,6 @@ async function getInter(req, res) {
     const { shortLivedToken } = req.session
     // const monday = initMondayClient()
     monday.setToken(shortLivedToken)
-    const { boardId } = body.payload.inboundFieldValues
     const date = new Date().toDateString().replace(/ /ig, '_')
     const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: date })
     gDateFolderId = dateFolderId
@@ -57,7 +56,8 @@ async function getInter(req, res) {
     console.log('get interrrrrr   err: ', err);
   } finally {
     console.log('is end?');
-    return res.end()
+    await onUpdateColumns(req, res)
+    // return res.end()
 
   }
 }
@@ -123,10 +123,13 @@ async function interStage3(users, filteredBoards, itemsColVals) {
 
       // await sleep(1000)
       const itemsByBoards = await filterBoards(filteredBoards, user.name, itemsColVals)
+      const itemsVals = Object.values(itemsByBoards)
+      let items = itemsVals.map(mondayService.getDateFilteredItems)
+      items = mondayService.getFilteredColVals(items).filter(items => items.length)
       if (Object.keys(itemsByBoards).length) {
         const { folderId: draftsmanFolderId } = await handleGoogleDrive('folder', { name: user.name, parentId: gDateFolderId })
-        await getCsvTable(itemsByBoards, user.name, draftsmanFolderId)
-        await getPdfTable(itemsByBoards, user.name, draftsmanFolderId)
+        await getCsvTable(items, user.name, draftsmanFolderId)
+        await getPdfTable(items, user.name, draftsmanFolderId)
       }
 
     }
@@ -297,27 +300,14 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
 
 }
 
-async function getCsvTable(itemsByBoards, draftsmanName, draftsmanFolderId) {
+async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
 
-  // var query = `query {boards (limit: 1000) {
-  //   name
-  //   id
-  //   columns {
-  //     id
-  //     title
-  //     type
-  //     settings_str
-  //   }
-  // }}`
-  // const { data: { boards } } = await monday.api(query)
-  // const filteredBoards = mondayService.getDraftsmanBoard(boards)
-  // const itemsByBoards = await filterTable(filteredBoards)
+
 
   //#2 part
   try {
-    const itemsVals = Object.values(itemsByBoards)
-    let items = itemsVals.map(mondayService.getDateFilteredItems)
-    items = mondayService.getFilteredColVals(items).filter(items => items.length)
+
+
 
     const fields = ['שם תכנית', ...mondayService.getTitles(items[0])]
     // const fields = ['שם תכנית', ...mondayService.getTitles(items)]
@@ -382,15 +372,11 @@ async function getCsvTable(itemsByBoards, draftsmanName, draftsmanFolderId) {
 }
 
 
-async function getPdfTable(itemsByBoards, draftsmanName, draftsmanFolderId) {
+async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
 
   try {
-    const itemsVals = Object.values(itemsByBoards)
-    let items = itemsVals.map(mondayService.getDateFilteredItems)
-    items = mondayService.getFilteredColVals(items).filter(items => items.length)
-    console.log('printing');
-    let head = [`שם תכנית`, ...utilsService.getTitlesReverse(items[0])]
 
+    console.log('printing');
 
     const boardsBodyAndHead = utilsService.getTablesBodyAndHead(items)
     utilsService.sendLog('boardsBodyAndHead', boardsBodyAndHead)
@@ -500,19 +486,15 @@ async function getItems(filteredBoards) {
 }
 
 
+// onUpdateColumns()
 
-
-
+/*TEST START*/
 async function onUpdateColumns(req, res) {
-  const body = req.body
   try {
-    const { shortLivedToken } = req.session
-    // const monday = initMondayClient()
-    monday.setToken(shortLivedToken)
-    const { boardId } = body.payload.inboundFieldValues
 
     var query = `query {
-      boards(ids: ${boardId}) {
+      boards {
+        id
         items {
           id
           column_values {
@@ -525,38 +507,102 @@ async function onUpdateColumns(req, res) {
       }
     }`
 
-    const _res = await monday.api(query)
+    const result = await monday.api(query)
 
-    const { boards } = _res.data
+    const { boards } = result.data
+    utilsService.sendLog('boards', boards)
+    boards.forEach(async board => {
+      const items = board.items
 
-    const items = boards[0].items
+      /*
+      * making an map object for each item with the item's id as the key,
+      * and the items mutation data object as the value
+      */
+      const itemsColValsMap = items.reduce((acc, item) => {
+        item.column_values.forEach(colVal => {
+          if (colVal.title === 'שעות עבודה חודש נוכחי' || colVal.title === 'שעות עבודה במצטבר') {
+            const label = colVal.title === 'שעות עבודה חודש נוכחי' ? 'from' : 'to'
+            acc[item.id] = acc[item.id] || {}
+            acc[item.id] = { ...acc[item.id], [label]: colVal }
+            // acc[item.id] = acc[item.id] ? { ...acc[item.id], [label]: colVal } : {[label]: colVal}
 
-    /*
-    * making an map object for each item with the item's id as the key,
-    * and the items mutation data object as the value
-    */
-    const itemsColValsMap = items.reduce((acc, item) => {
-      item.column_values.forEach(colVal => {
-        if (colVal.title === 'שעות עבודה חודש נוכחי' || colVal.title === 'שעות עבודה במצטבר') {
-          const label = colVal.title === 'שעות עבודה חודש נוכחי' ? 'from' : 'to'
-          acc[item.id] = acc[item.id] || {}
-          acc[item.id] = { ...acc[item.id], [label]: colVal }
-          // acc[item.id] = acc[item.id] ? { ...acc[item.id], [label]: colVal } : {[label]: colVal}
+          }
+        })
+        return acc
 
-        }
-      })
-      return acc
+      }, {})
+      await updateColumns(itemsColValsMap, board.id)
+    })
 
-    }, {})
-    [{ 123123123123: { from: { text: 312, id: 33412312312 } } }]
-    await updateColumns(itemsColValsMap, boardId)
   } catch (err) {
     console.log('err: ', err);
 
   } finally {
+    console.log('really end');
     res.end()
   }
 }
+/*TEST END*/
+
+
+
+/*ORIGINAL START*/
+// async function onUpdateColumns(req, res) {
+//   const body = req.body
+//   try {
+//     const { shortLivedToken } = req.session
+//     // const monday = initMondayClient()
+//     monday.setToken(shortLivedToken)
+//     const { boardId } = body.payload.inboundFieldValues
+
+//     var query = `query {
+//       boards(ids: ${boardId}) {
+//         items {
+//           id
+//           column_values {
+//             id
+//             title
+//             value
+//             text
+//           }
+//         }
+//       }
+//     }`
+
+//     const _res = await monday.api(query)
+
+//     const { boards } = _res.data
+
+//     const items = boards[0].items
+
+//     /*
+//     * making an map object for each item with the item's id as the key,
+//     * and the items mutation data object as the value
+//     */
+//     const itemsColValsMap = items.reduce((acc, item) => {
+//       item.column_values.forEach(colVal => {
+//         if (colVal.title === 'שעות עבודה חודש נוכחי' || colVal.title === 'שעות עבודה במצטבר') {
+//           const label = colVal.title === 'שעות עבודה חודש נוכחי' ? 'from' : 'to'
+//           acc[item.id] = acc[item.id] || {}
+//           acc[item.id] = { ...acc[item.id], [label]: colVal }
+//           // acc[item.id] = acc[item.id] ? { ...acc[item.id], [label]: colVal } : {[label]: colVal}
+
+//         }
+//       })
+//       return acc
+
+//     }, {})
+//     [{ 123123123123: { from: { text: 312, id: 33412312312 } } }]
+//     await updateColumns(itemsColValsMap, boardId)
+//   } catch (err) {
+//     console.log('err: ', err);
+
+//   } finally {
+//     res.end()
+//   }
+// }
+/*ORIGINAL END*/
+
 
 
 
