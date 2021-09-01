@@ -1,4 +1,4 @@
-const { isHebrew } = require('./utils.service')
+const { isHebrew, reverse } = require('./utils.service')
 
 module.exports = {
   buildTablesPDF
@@ -6,6 +6,22 @@ module.exports = {
 
 
 
+function combineText(txt) {
+  const txtArr = txt.split(' ')
+  let resultArr = []
+  for (let i = 0; i < txtArr.length; i++) {
+    let currWord = txtArr[i];
+    if (!currWord) continue
+    let lastWord = resultArr[resultArr.length - 1]
+    if (lastWord && isHebrew(lastWord) === isHebrew(currWord)) {
+      resultArr[resultArr.length - 1] = (lastWord + ' ' + currWord)
+    } else {
+      resultArr.push(currWord)
+    }
+  }
+  if (resultArr.length > 1) resultArr = resultArr.map(word => isHebrew(word) ? word : reverse(word))
+  return resultArr
+}
 
 
 
@@ -36,7 +52,7 @@ async function buildTablesPDF(boardsBodyAndHead) {
       styles: {
         font: 'MyFont',
         fontSize: 10,
-        // halign: 'right',
+        halign: 'right',
       },
       rowPageBreak: 'avoid',
       startY: startYPos,
@@ -52,13 +68,11 @@ async function buildTablesPDF(boardsBodyAndHead) {
         if (data.section === 'foot') return
         let halign = (isHebrew(data.cell.text[0])) ? 'right' : 'left'
         data.cell.styles.halign = halign
-
+        data.cell.text = combineText(data.cell.text[0])
       },
 
       willDrawCell: (data) => {
-
         const { doc, cell } = data
-        
         const { raw } = cell
         const isDateReg = /\d{4}\/\d{2}\/\d{2}/g
         let isR2L = true

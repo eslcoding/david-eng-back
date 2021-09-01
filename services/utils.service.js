@@ -91,5 +91,6 @@ module.exports = {
   getTablesBodyAndHead,
   getFormattedValue,
   sendLog,
-  getDateRange
+  getDateRange,
+  reverse
 }
