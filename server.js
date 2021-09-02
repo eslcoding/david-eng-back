@@ -55,6 +55,7 @@ app.use('/', mondayWebHookRoutes)
 
 
 app.get('/', (req, res)=>{
+    if (!config.env.isDevelopment) return
     res.send(global.log)
 })
 

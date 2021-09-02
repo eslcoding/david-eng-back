@@ -10,7 +10,7 @@ var gDateFolderId;
 const monday = initMondayClient()
 
 
-
+global.isReqOn = false
 async function getInter(req, res) {
   // return res.end()
   const body = req.body
@@ -64,6 +64,8 @@ async function getInter(req, res) {
 
 async function getInterTest(req, res) {
   // return res.end()
+  if (global.isReqOn) return res.end()
+
   const body = req.body
   try {
     const { shortLivedToken } = req.session
@@ -107,6 +109,7 @@ async function getInterTest(req, res) {
     console.log('get interrrrrr   err: ', err);
   } finally {
     console.log('is end?');
+    global.isReqOn = false
     return res.end()
 
   }
