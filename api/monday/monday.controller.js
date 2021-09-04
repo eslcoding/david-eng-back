@@ -21,7 +21,8 @@ async function getInter(req, res) {
     // const monday = initMondayClient()
     monday.setToken(shortLivedToken)
     const date = new Date().toDateString().replace(/ /ig, '_')
-    const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: date })
+    const monthAndYear = mondayService.getFormattedMonthAndYear()
+    const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: monthAndYear })
     gDateFolderId = dateFolderId
     // return
 
