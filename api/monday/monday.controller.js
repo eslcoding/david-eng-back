@@ -402,7 +402,7 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
         return csvRes
       }, csvRes)
 
-      return { filename: `${draftsmanName}-${board.name}-${monthAndYear}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'text/csv' }
+      return { filename: `${draftsmanName}-${monthAndYear}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'text/csv' }
     })
 
 
