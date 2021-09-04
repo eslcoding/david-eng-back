@@ -74,6 +74,14 @@ function getTitles(items) {
   return item.column_values.map(colVal => colVal.title)
 }
 
+function getFormattedMonthAndYear() {
+  const time = new Date(Date.now()-7*24*3600*1000)
+  const month = (time.getMonth()+1+'').padStart(2, '0')
+  const year = (time.getFullYear()+'').substr(-2)
+  return `${month}.${year}`
+  
+}
+
 
 function getFormattedValue(type, value, isWeb) {
   if (value) {
@@ -230,6 +238,7 @@ module.exports = {
   getTitles,
   getFormattedValue,
   sendEmail,
+  getFormattedMonthAndYear,
   replaceDb,
   getDb
 }

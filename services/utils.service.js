@@ -81,6 +81,8 @@ function formatDate(value, isWeb) {
 
 }
 
+
+
 function reverse(str) {
   return str.split('').reverse().join('')
 }

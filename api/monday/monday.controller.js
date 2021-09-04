@@ -13,6 +13,8 @@ const monday = initMondayClient()
 global.isReqOn = false
 async function getInter(req, res) {
   // return res.end()
+  if (global.isReqOn) return res.end()
+  global.isReqOn = true
   const body = req.body
   try {
     const { shortLivedToken } = req.session
@@ -235,7 +237,7 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   const searchTerm = {
     date: utilsService.getDateRange(),
     draftsman: { nameStr: username }
-    
+
   }
 
 
@@ -387,7 +389,7 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
     }, [])
 
 
-
+    const monthAndYear = mondayService.getFormattedMonthAndYear()
     const csvResults = csvs.map((csvValues, idx) => {
       const board = csvValues[0].splice(-1, 1)[0]
       csvValues.slice(1).forEach(values => values.splice(-1, 1))
@@ -399,7 +401,7 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
         return csvRes
       }, csvRes)
 
-      return { filename: `${draftsmanName}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'text/csv' }
+      return { filename: `${draftsmanName}-${board.name}-${monthAndYear}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'text/csv' }
     })
 
 
@@ -428,11 +430,11 @@ async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
   try {
 
     console.log('printing');
-
+    const monthAndYear = mondayService.getFormattedMonthAndYear()
     const boardsBodyAndHead = utilsService.getTablesBodyAndHead(items)
     utilsService.sendLog('boardsBodyAndHead', boardsBodyAndHead)
     const pdfContent = await buildTablesPDF(boardsBodyAndHead)
-    await handleGoogleDrive('file', { filename: draftsmanName + '.pdf', mimeType: 'application/pdf', content: pdfContent, parentId: draftsmanFolderId })
+    await handleGoogleDrive('file', { filename: `${draftsmanName}-${monthAndYear}.pdf`, mimeType: 'application/pdf', content: pdfContent, parentId: draftsmanFolderId })
   } catch (err) {
     console.log('err in getPDfTable: ', err);
     throw err
@@ -590,6 +592,7 @@ async function onUpdateColumns(req, res) {
 
   } finally {
     console.log('really end');
+    global.isReqOn = false
     res.end()
   }
 }
