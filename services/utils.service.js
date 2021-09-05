@@ -33,7 +33,6 @@ function getTablesBodyAndHead(boardsWithItems) {
     const boardName = boardWithItems[0].board.name
     return { body, head, boardName }
   })
-  sendLog('boardsItemsColVals', boardsItemsColVals)
   return boardsItemsColVals
 }
 
@@ -96,3 +95,7 @@ module.exports = {
   getDateRange,
   reverse
 }
+
+
+
+

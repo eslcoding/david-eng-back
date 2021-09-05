@@ -30,6 +30,10 @@ async function getInter(req, res) {
     let query = `query 
     {
       boards (limit: 2000) {
+      workspace {
+        name
+        id
+      }
       name
       id
       columns {
@@ -40,6 +44,7 @@ async function getInter(req, res) {
         
       }
     }}`
+    
     const result = await monday.api(query)
     const _boards = result.data.boards
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
@@ -69,21 +74,27 @@ async function getInterTest(req, res) {
   // return res.end()
   if (global.isReqOn) return res.end()
   global.isReqOn = true
-
   const body = req.body
   try {
+    
     const { shortLivedToken } = req.session
     // const monday = initMondayClient()
     monday.setToken(shortLivedToken)
     const date = new Date().toDateString().replace(/ /ig, '_')
-    const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: date })
+    const monthAndYear = mondayService.getFormattedMonthAndYear()
+    const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: monthAndYear })
     gDateFolderId = dateFolderId
     // return
 
-
+    // ! Testing 200 boards
+    // ! change back to 2000
     let query = `query 
     {
       boards (limit: 2000) {
+      workspace {
+        name
+        id
+      }
       name
       id
       columns {
@@ -91,11 +102,21 @@ async function getInterTest(req, res) {
         title
         type
         settings_str
-        
       }
     }}`
+   let query2 = `query {
+      boards(limit: 500) {
+        name
+        workspace {
+          name
+          id
+        }
+      }
+    }`
     const result = await monday.api(query)
+    const result2 = await monday.api(query2)
     const _boards = result.data.boards
+    utilsService.sendLog('result2', result2)
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
     /*TEST START*/
     await sleep()
@@ -433,7 +454,6 @@ async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
     console.log('printing');
     const monthAndYear = mondayService.getFormattedMonthAndYear()
     const boardsBodyAndHead = utilsService.getTablesBodyAndHead(items)
-    utilsService.sendLog('boardsBodyAndHead', boardsBodyAndHead)
     const pdfContent = await buildTablesPDF(boardsBodyAndHead)
     await handleGoogleDrive('file', { filename: `${draftsmanName}-${monthAndYear}.pdf`, mimeType: 'application/pdf', content: pdfContent, parentId: draftsmanFolderId })
   } catch (err) {
@@ -564,7 +584,6 @@ async function onUpdateColumns(req, res) {
     const result = await monday.api(query)
 
     const { boards } = result.data
-    utilsService.sendLog('boards', boards)
     boards.forEach(async board => {
       const items = board.items
 
