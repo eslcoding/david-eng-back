@@ -26,7 +26,6 @@ function getDateRange() {
 
 
 function getTablesBodyAndHead(boardsWithItems) {
-  sendLog('boardsWithItems', boardsWithItems)
   const boardsItemsColVals = boardsWithItems.map(boardWithItems => {
     const head = [`שם תכנית`, ...getTitlesReverse(boardWithItems)]
     const body = boardWithItems.map(item => [{ text: item.name }, ...item.column_values].map(_formatHebEngWords))

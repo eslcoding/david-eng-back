@@ -25,7 +25,7 @@ function combineText(txt) {
 
 
 
-async function buildTablesPDF(boardsBodyAndHead) {
+async function buildTablesPDF(boardsBodyAndHead, summery) {
 
   global.window = {}
 
@@ -38,6 +38,45 @@ async function buildTablesPDF(boardsBodyAndHead) {
   doc.addFileToVFS("MyFont.ttf", myFont);
   doc.addFont("MyFont.ttf", "MyFont", "normal");
   doc.setFont("MyFont");
+
+  const {titles, body} = summery
+
+
+  doc.autoTable({
+    theme: 'grid',
+    styles: {
+        font: 'MyFont',
+        fontSize: 12,
+        halign: 'right',
+    },
+
+    margin: { right: 60, left: 60 },
+    head: [titles],
+    body: [body],
+    // showHead: 'never'
+    didParseCell: (data) => {
+      if (data.section === 'foot') return
+      let halign = (isHebrew(data.cell.text[0])) ? 'right' : 'left'
+      data.cell.styles.halign = halign
+      data.cell.text = combineText(data.cell.text[0])
+    },
+
+    willDrawCell: (data) => {
+      const { doc, cell } = data
+      const { raw } = cell
+      const isDateReg = /\d{4}\/\d{2}\/\d{2}/g
+      let isR2L = true
+      if (!isDateReg.test(raw) && !isHebrew(raw || '')) {
+        isR2L = false
+      }
+      if (cell.section === 'foot') {
+        isR2L = isHebrew(BodyAndHead.boardName)
+      }
+      doc.setR2L(isR2L)
+
+    },
+});
+
   boardsBodyAndHead.forEach((BodyAndHead, idx) => {
 
     doc.setR2L(true)

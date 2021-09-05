@@ -82,6 +82,22 @@ function getFormattedMonthAndYear() {
   
 }
 
+function getNumOfItems(items) {
+  const _items = items.reduce((acc, val) => acc.concat(val), [])
+
+  return _items.length
+}
+
+function getWorkHoursSum(items, colTitle) {
+  const _items = items.reduce((acc, val) => acc.concat(val), [])
+  return _items.reduce((acc, currItem) => {
+      const { column_values } = currItem
+      const hoursCol = column_values.find(colVal => colVal.title === colTitle)
+      acc += (+hoursCol?.text || 0)
+      return acc
+  }, 0).toFixed(3)
+}
+
 
 function getFormattedValue(type, value, isWeb) {
   if (value) {
@@ -240,5 +256,7 @@ module.exports = {
   sendEmail,
   getFormattedMonthAndYear,
   replaceDb,
-  getDb
+  getDb,
+  getNumOfItems,
+  getWorkHoursSum
 }

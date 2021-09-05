@@ -27,21 +27,21 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', 'https://af570353096f.ngrok.io');
     res.header('Access-Control-Allow-Origin', 'https://api-gw.monday.com');
     res.header('Access-Control-Allow-Origin', 'https://88983808e60cae26.cdn.monday.app');
-    
+
     res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,POST,DELETE');
     // res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
     // res.header('Access-Control-Allow-Headers', 'Content-Type');
     // res.header('Access-Control-Allow-Headers', 'x-pulse-pusher-socketid');
     res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, X-Auth-Token, x-pulse-pusher-socketid');
     next();
-  });
+});
 
 
 if (!config.env.isDevelopment) {
     // app.use(express.static(path.resolve(__dirname, 'public')));
 } else {
     const corsOptions = {
-        origin: ['http://127.0.0.1:8080', 'http://localhost:8080', 'http://127.0.0.1:3000', 'https://localhost:3000','https://68b6374b42a0.ngrok.io', 'https://88983808e60cae26.cdn.monday.app', 'https://testing-apps.monday.com', 'https://api-gw.monday.com'],
+        origin: ['http://127.0.0.1:8080', 'http://localhost:8080', 'http://127.0.0.1:3000', 'https://localhost:3000', 'https://68b6374b42a0.ngrok.io', 'https://88983808e60cae26.cdn.monday.app', 'https://testing-apps.monday.com', 'https://api-gw.monday.com'],
         credentials: true
     };
     app.use(cors(corsOptions));
@@ -54,7 +54,7 @@ app.use('/api/monday', mondayRoutes)
 app.use('/', mondayWebHookRoutes)
 
 
-app.get('/', (req, res)=>{
+app.get('/', (req, res) => {
     if (!config.env.isDevelopment) return
     res.send(global.log)
 })

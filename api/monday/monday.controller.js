@@ -44,7 +44,7 @@ async function getInter(req, res) {
         
       }
     }}`
-    
+
     const result = await monday.api(query)
     const _boards = result.data.boards
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
@@ -76,7 +76,7 @@ async function getInterTest(req, res) {
   global.isReqOn = true
   const body = req.body
   try {
-    
+
     const { shortLivedToken } = req.session
     // const monday = initMondayClient()
     monday.setToken(shortLivedToken)
@@ -104,19 +104,9 @@ async function getInterTest(req, res) {
         settings_str
       }
     }}`
-   let query2 = `query {
-      boards(limit: 500) {
-        name
-        workspace {
-          name
-          id
-        }
-      }
-    }`
+
     const result = await monday.api(query)
-    const result2 = await monday.api(query2)
     const _boards = result.data.boards
-    utilsService.sendLog('result2', result2)
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
     /*TEST START*/
     await sleep()
@@ -450,11 +440,12 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
 async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
 
   try {
-
+    utilsService.sendLog('items', items)
     console.log('printing');
     const monthAndYear = mondayService.getFormattedMonthAndYear()
+    const summery = getDraftsmanSummery(items, draftsmanName)
     const boardsBodyAndHead = utilsService.getTablesBodyAndHead(items)
-    const pdfContent = await buildTablesPDF(boardsBodyAndHead)
+    const pdfContent = await buildTablesPDF(boardsBodyAndHead, summery)
     await handleGoogleDrive('file', { filename: `${draftsmanName}-${monthAndYear}.pdf`, mimeType: 'application/pdf', content: pdfContent, parentId: draftsmanFolderId })
   } catch (err) {
     console.log('err in getPDfTable: ', err);
@@ -465,6 +456,29 @@ async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
   // return Promise.resolve()
 
   // mondayService.sendEmail('anistu@gmail.com', 'test title', 'test text', csvResults)
+
+}
+
+
+function getDraftsmanSummery(draftsManData, draftsmanName) {
+  
+  const titles = []
+  const body = []
+  const dateRange = utilsService.getDateRange()
+  
+  titles.unshift('דוח שרטט')
+  titles.unshift('מתאריך')
+  titles.unshift('עד תאריך')
+  titles.unshift('מספר תכניות')
+  titles.unshift('סכום שעות עבודה חודש נוכחי')
+  titles.unshift('שעות עבודה במצטבר')
+  body.unshift(draftsmanName)
+  body.unshift(dateRange.start.toLocaleDateString('he'))
+  body.unshift(dateRange.end.toLocaleDateString('he'))
+  body.unshift(mondayService.getNumOfItems(draftsManData))
+  body.unshift(mondayService.getWorkHoursSum(draftsManData, 'שעות עבודה חודש נוכחי') + '')
+  body.unshift(mondayService.getWorkHoursSum(draftsManData, 'שעות עבודה במצטבר') + '')
+  return {titles, body}
 
 }
 
