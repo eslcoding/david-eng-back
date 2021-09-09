@@ -534,11 +534,7 @@ async function getDraftsmenUsers(filteredBoards) {
 async function getUsers() {
 
   const query = `query {
-    complexity{
-      before
-      query
-      after
-    }
+   
       users  {
           id
           name
@@ -625,11 +621,7 @@ async function getItems(filteredBoards) {
     const prmBoards = filteredBoards.map(async (board, idx) => {
 
       var query = `query {
-        complexity{
-          before
-          query
-          after
-        }
+        
         boards(ids: ${board.id}) {
             name
             items(limit: 500) {
@@ -648,15 +640,18 @@ async function getItems(filteredBoards) {
     }`
       return monday.api(query)
     })
-   
+
     var boardsWithItems = await Promise.all(prmBoards)
 
     // console.log('boardsWithItems[boardsWithItems.length-1]: ', boardsWithItems[boardsWithItems.length-1], 'boardsWithItems[boardsWithItems.length-1]:');
-    
+
     /*ORIGINAL END*/
     // utilsService.sendLog('getItems_BoardsWithItems', boardsWithItems)
     // // boardsWithItems.forEach(board=>console.log('boardWithItems: ', board))
-
+    /**
+     * TODO: CHECK HERE FOR COMPLEXITY PROBLEM
+     * !IMPORTANT
+     */
     boardsWithItems = boardsWithItems.filter(_board => _board.data)
     boardsWithItems = boardsWithItems.map(_board => _board.data.boards[0].items)
     return boardsWithItems
