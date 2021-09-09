@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const { parse } = require('json2csv');
 const { handleGoogleDrive } = require('../../services/googleDriveService/googleDrive.service');
 const { buildTablesPDF } = require('../../services/pdf.service');
-
+var gRes;
 var gDateFolderId;
 const monday = initMondayClient()
 
@@ -29,7 +29,7 @@ async function getInter(req, res) {
 
     let query = `query 
     {
-      boards (limit: 2000) {
+      boards (limit: 5000) {
       workspace {
         name
         id
@@ -40,7 +40,6 @@ async function getInter(req, res) {
         id
         title
         type
-        settings_str
         
       }
     }}`
@@ -75,8 +74,8 @@ async function getInterTest(req, res) {
   if (global.isReqOn) return res.end()
   global.isReqOn = true
   const body = req.body
+  gRes = res
   try {
-
     const { shortLivedToken } = req.session
     // const monday = initMondayClient()
     monday.setToken(shortLivedToken)
@@ -86,26 +85,29 @@ async function getInterTest(req, res) {
     gDateFolderId = dateFolderId
     // return
 
-    // ! Testing 200 boards
-    // ! change back to 2000
     let query = `query 
     {
-      boards (limit: 2000) {
-      workspace {
-        name
-        id
+      complexity{
+        before
+        query
+        after
       }
+      boards (limit: 1000) {
       name
       id
       columns {
         id
         title
         type
-        settings_str
       }
     }}`
 
+
     const result = await monday.api(query)
+
+
+
+    // utilsService.sendLog('complexity1', result.data.complexity)
     const _boards = result.data.boards
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
     /*TEST START*/
@@ -128,6 +130,14 @@ async function getInterTest(req, res) {
     return res.end()
 
   }
+}
+
+
+function testEnd(data) {
+
+  console.log('**test stop**');
+
+  return gRes.end()
 }
 
 
@@ -440,7 +450,6 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
 async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
 
   try {
-    utilsService.sendLog('items', items)
     console.log('printing');
     const monthAndYear = mondayService.getFormattedMonthAndYear()
     const summery = getDraftsmanSummery(items, draftsmanName)
@@ -461,11 +470,11 @@ async function getPdfTable(items, draftsmanName, draftsmanFolderId) {
 
 
 function getDraftsmanSummery(draftsManData, draftsmanName) {
-  
+
   const titles = []
   const body = []
   const dateRange = utilsService.getDateRange()
-  
+
   titles.unshift('דוח שרטט')
   titles.unshift('מתאריך')
   titles.unshift('עד תאריך')
@@ -478,7 +487,7 @@ function getDraftsmanSummery(draftsManData, draftsmanName) {
   body.unshift(mondayService.getNumOfItems(draftsManData))
   body.unshift(mondayService.getWorkHoursSum(draftsManData, 'שעות עבודה חודש נוכחי') + '')
   body.unshift(mondayService.getWorkHoursSum(draftsManData, 'שעות עבודה במצטבר') + '')
-  return {titles, body}
+  return { titles, body }
 
 }
 
@@ -487,15 +496,25 @@ function getDraftsmanSummery(draftsManData, draftsmanName) {
 
 async function getDraftsmenUsers(filteredBoards) {
   try {
-
+    let count = 0
     let users = await getUsers()
+    utilsService.sendLog('filteredBoardsLength', filteredBoards.map(itemBoard => itemBoard.name).length)
     let itemsColVals = await getItems(filteredBoards)
+
+    const boardsNames = itemsColVals.map(items => items[0].board.name)
+    utilsService.sendLog('itemsColValsLength', itemsColVals.length)
+
+    // const ramatEfal = itemsColVals.filter(items => items.some(item => item.board.name.includes('רמת אפעל')))
+    // utilsService.sendLog('ramatEfal', ramatEfal)
 
     users = users.filter(user => {
       return itemsColVals.some(itemsPerBoard => {
+        // if (user.name === 'Ludmila Ivaschenko') {
+        //   utilsService.sendLog(`ludmilaItemBoard${count}`, itemsPerBoard)
+        // }
         return itemsPerBoard.some(item => {
           return item.column_values.some(colVal => {
-            return (colVal.type === 'multiple-person') && (colVal.title === 'שרטט') && colVal.text.includes(user.name)
+            return (colVal.title === 'שרטט') && colVal.text.includes(user.name)
           })
         })
       })
@@ -515,11 +534,14 @@ async function getDraftsmenUsers(filteredBoards) {
 async function getUsers() {
 
   const query = `query {
+    complexity{
+      before
+      query
+      after
+    }
       users  {
           id
           name
-          email
-          photo_thumb_small
           account {
               name
               }
@@ -535,13 +557,82 @@ async function getUsers() {
 async function getItems(filteredBoards) {
   try {
     console.log('get items');
+    /*TEST START*/
+    //********************
+    // var boardsWithItems = []
+    // for (let board of filteredBoards) {
 
+    //   var query = `query {
+    //     boards(ids: ${board.id}) {
+    //         name
+    //         items {
+    //           name
+    //           id
+    //           board{name id}
+    //           column_values {
+    //                 text
+    //                 id
+    //                 value
+    //                 type
+    //                 title
+    //             }
+    //         }
+    //     }
+    // }`
+    //   // await sleep(5 * 1000)
+    //   const resBoard = await monday.api(query)
+    //   boardsWithItems.push(resBoard)
+    // }
+    //********************
+
+
+    // const boardsIds = filteredBoards.map(board => board.id)
+    // var query = `query {
+
+    //     complexity{
+    //       before
+    //       query
+    //       after
+    //     }
+
+    //     boards(ids: [${boardsIds.slice(0, 2)}]) {
+
+    //         name
+    //         items {
+    //           name
+    //           id
+    //           board{name id}
+    //           column_values {
+    //                 text
+    //                 id
+    //                 value
+    //                 type
+    //                 title
+    //             }
+    //         }
+    //     }
+    // }`
+    // const result = await monday.api(query)
+    // utilsService.sendLog('getItems_result', result)
+    // return 
+    //********************
+
+    /*TEST END*/
+
+
+
+    /*ORIGINAL START*/
     const prmBoards = filteredBoards.map(async (board, idx) => {
 
       var query = `query {
+        complexity{
+          before
+          query
+          after
+        }
         boards(ids: ${board.id}) {
             name
-            items (limit: 2000) {
+            items(limit: 500) {
               name
               id
               board{name id}
@@ -551,21 +642,23 @@ async function getItems(filteredBoards) {
                     value
                     type
                     title
-                    additional_info
                 }
             }
         }
     }`
       return monday.api(query)
     })
+   
     var boardsWithItems = await Promise.all(prmBoards)
 
-    // boardsWithItems.forEach(board=>console.log('boardWithItems: ', board))
+    // console.log('boardsWithItems[boardsWithItems.length-1]: ', boardsWithItems[boardsWithItems.length-1], 'boardsWithItems[boardsWithItems.length-1]:');
+    
+    /*ORIGINAL END*/
+    // utilsService.sendLog('getItems_BoardsWithItems', boardsWithItems)
+    // // boardsWithItems.forEach(board=>console.log('boardWithItems: ', board))
 
     boardsWithItems = boardsWithItems.filter(_board => _board.data)
-
     boardsWithItems = boardsWithItems.map(_board => _board.data.boards[0].items)
-
     return boardsWithItems
   } catch (err) {
     console.log('error getitems', err);

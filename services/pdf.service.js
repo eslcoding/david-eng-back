@@ -8,19 +8,37 @@ module.exports = {
 
 function combineText(txt) {
   const txtArr = txt.split(' ')
-  let resultArr = []
+  let resultWords = []
   for (let i = 0; i < txtArr.length; i++) {
     let currWord = txtArr[i];
     if (!currWord) continue
-    let lastWord = resultArr[resultArr.length - 1]
-    if (lastWord && isHebrew(lastWord) === isHebrew(currWord)) {
-      resultArr[resultArr.length - 1] = (lastWord + ' ' + currWord)
+    let prevWord = resultWords[resultWords.length - 1]
+    if (prevWord && isHebrew(prevWord) === isHebrew(currWord)) {
+      resultWords[resultWords.length - 1] = (prevWord + ' ' + currWord)
     } else {
-      resultArr.push(currWord)
+      resultWords.push(currWord)
     }
   }
-  if (resultArr.length > 1) resultArr = resultArr.map(word => isHebrew(word) ? word : reverse(word))
-  return resultArr
+  if (resultWords.length > 1) resultWords = resultWords.map(word => isHebrew(word) ? word : reverse(word))
+  return resultWords
+}
+
+function combineTextReduce(txt) {
+  const txtArr = txt.split(' ')
+  // for (let i = 0; i < txtArr.length; i++) {
+  let resultWords = txtArr.reduce((acc, currWord, i) => {
+
+    if (!currWord) return acc
+    let prevWord = acc[acc.length - 1]
+    if (prevWord && isHebrew(prevWord) === isHebrew(currWord)) {
+      acc[acc.length - 1] = (prevWord + ' ' + currWord)
+    } else {
+      acc.push(currWord)
+    }
+    return acc
+  }, [])
+  if (resultWords.length > 1) resultWords = resultWords.map(word => isHebrew(word) ? word : reverse(word))
+  return resultWords
 }
 
 
@@ -39,15 +57,15 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
   doc.addFont("MyFont.ttf", "MyFont", "normal");
   doc.setFont("MyFont");
 
-  const {titles, body} = summery
+  const { titles, body } = summery
 
 
   doc.autoTable({
     theme: 'grid',
     styles: {
-        font: 'MyFont',
-        fontSize: 12,
-        halign: 'right',
+      font: 'MyFont',
+      fontSize: 12,
+      halign: 'right',
     },
 
     margin: { right: 60, left: 60 },
@@ -75,7 +93,7 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
       doc.setR2L(isR2L)
 
     },
-});
+  });
 
   boardsBodyAndHead.forEach((BodyAndHead, idx) => {
 
