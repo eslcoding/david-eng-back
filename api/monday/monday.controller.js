@@ -624,7 +624,7 @@ async function getItems(filteredBoards) {
         
         boards(ids: ${board.id}) {
             name
-            items(limit: 500) {
+            items(limit: 600) {
               name
               id
               board{name id}
