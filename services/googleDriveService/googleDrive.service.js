@@ -137,8 +137,8 @@ function uploadFile(auth, data) {
 
     var media = {
       mimeType: data.mimeType,
-      // body: fs.createReadStream('files/photo.jpg')
-      body: data.content
+      body: data.mimeType === 'text/csv' ? data.content : fs.createReadStream('./document.pdf') //!Testing
+      // body: data.content
     };
     drive.files.create({
       resource: fileMetadata,

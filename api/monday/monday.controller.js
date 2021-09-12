@@ -240,7 +240,7 @@ async function interStage2(filteredBoards) {
 
 /*ORIGINAL START*/
 async function interStage3(users, filteredBoards, itemsColVals) {
- 
+
 
   try {
     // users.forEach(async user => {
@@ -257,6 +257,7 @@ async function interStage3(users, filteredBoards, itemsColVals) {
         await getPdfTable(items, user.name, draftsmanFolderId)
 
       }
+
 
     }
   } catch (err) {
