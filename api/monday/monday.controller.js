@@ -11,11 +11,13 @@ const monday = initMondayClient()
 
 
 global.isReqOn = false
+/*TEST START*/
 async function getInter(req, res) {
   // return res.end()
   if (global.isReqOn) return res.end()
   global.isReqOn = true
   const body = req.body
+  gRes = res
   try {
     const { shortLivedToken } = req.session
     // const monday = initMondayClient()
@@ -26,36 +28,24 @@ async function getInter(req, res) {
     gDateFolderId = dateFolderId
     // return
 
-
     let query = `query 
     {
-      boards (limit: 5000) {
-      workspace {
-        name
-        id
-      }
+     
+      boards (limit: 1000) {
       name
       id
       columns {
         id
         title
         type
-        
       }
     }}`
-
     const result = await monday.api(query)
+    // utilsService.sendLog('complexity1', result.data.complexity)
     const _boards = result.data.boards
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
-    /*TEST START*/
     await sleep()
     await interStage2(filteredBoards)
-    /*TEST END*/
-
-    /*ORIGINAL START*/
-    // await mondayService.replaceDb({ boards: filteredBoards, key: 'boards' })
-    // return await deleyFunc(interStage2, 1000 * 30 * 0.1, res)
-    /*ORIGINAL END*/
 
     console.log('done?');
 
@@ -68,6 +58,70 @@ async function getInter(req, res) {
 
   }
 }
+/*TEST END*/
+
+
+
+/*ORIGINAL START*/
+// async function getInter(req, res) {
+//   // return res.end()
+//   if (global.isReqOn) return res.end()
+//   global.isReqOn = true
+//   const body = req.body
+//   try {
+//     const { shortLivedToken } = req.session
+//     // const monday = initMondayClient()
+//     monday.setToken(shortLivedToken)
+//     const date = new Date().toDateString().replace(/ /ig, '_')
+//     const monthAndYear = mondayService.getFormattedMonthAndYear()
+//     const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: monthAndYear })
+//     gDateFolderId = dateFolderId
+//     // return
+
+
+//     let query = `query 
+//     {
+//       boards (limit: 5000) {
+//       workspace {
+//         name
+//         id
+//       }
+//       name
+//       id
+//       columns {
+//         id
+//         title
+//         type
+
+//       }
+//     }}`
+
+//     const result = await monday.api(query)
+//     const _boards = result.data.boards
+//     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
+//     /*TEST START*/
+//     await sleep()
+//     await interStage2(filteredBoards)
+//     /*TEST END*/
+
+//     /*ORIGINAL START*/
+//     // await mondayService.replaceDb({ boards: filteredBoards, key: 'boards' })
+//     // return await deleyFunc(interStage2, 1000 * 30 * 0.1, res)
+//     /*ORIGINAL END*/
+
+//     console.log('done?');
+
+//   } catch (err) {
+//     console.log('get interrrrrr   err: ', err);
+//   } finally {
+//     console.log('is end?');
+//     await onUpdateColumns(req, res)
+//     // return res.end()
+
+//   }
+// }
+/*ORIGINAL END*/
+
 
 async function getInterTest(req, res) {
   // return res.end()
@@ -87,11 +141,7 @@ async function getInterTest(req, res) {
 
     let query = `query 
     {
-      complexity{
-        before
-        query
-        after
-      }
+     
       boards (limit: 1000) {
       name
       id
@@ -190,10 +240,7 @@ async function interStage2(filteredBoards) {
 
 /*ORIGINAL START*/
 async function interStage3(users, filteredBoards, itemsColVals) {
-  /* 
-  !FOR TESTING  REMOVE LATER 
-  */
-  // users = users.slice(0, 1)
+ 
 
   try {
     // users.forEach(async user => {
@@ -208,6 +255,7 @@ async function interStage3(users, filteredBoards, itemsColVals) {
         const { folderId: draftsmanFolderId } = await handleGoogleDrive('folder', { name: user.name, parentId: gDateFolderId })
         await getCsvTable(items, user.name, draftsmanFolderId)
         await getPdfTable(items, user.name, draftsmanFolderId)
+
       }
 
     }
@@ -385,6 +433,8 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
 
 
     const fields = ['שם תכנית', ...mondayService.getTitles(items[0])]
+    const spaces = fields.map(field => ', ').join('')
+    console.log('getCsvTable -> spaces', spaces)
     // const fields = ['שם תכנית', ...mondayService.getTitles(items)]
 
 
@@ -412,26 +462,43 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
 
 
     const monthAndYear = mondayService.getFormattedMonthAndYear()
-    const csvResults = csvs.map((csvValues, idx) => {
+    let csvResults = csvs.map((csvValues, idx) => {
       const board = csvValues[0].splice(-1, 1)[0]
       csvValues.slice(1).forEach(values => values.splice(-1, 1))
 
 
-      let csvRes = fields.join()
+      const spaces = fields.map(field => ', ')
+      spaces[parseInt(spaces.length / 2)] = board.name
+      let csvRes = spaces
+      csvRes += ('\n' + fields.join())
       const testRes = csvValues.reduce((acc, vals) => {
         csvRes += ('\n' + vals.join())
         return csvRes
       }, csvRes)
-
       return { filename: `${draftsmanName}-${monthAndYear}-${board.name}.csv`, content: testRes, parentId: draftsmanFolderId, mimeType: 'text/csv' }
     })
 
+    let generalCsvContent = csvResults.reduce((acc, vals) => {
+      acc += ('\n' + vals.content + '\n')
+
+      return acc
+    }, '')
+    utilsService.sendLog('generalCsvContent', generalCsvContent)
 
 
-    await Promise.all(csvResults.map(csvRes => {
-      console.log('CSV injecttttttt');
-      return handleGoogleDrive('file', csvRes)
-    }))
+    /*TEST START*/
+    await handleGoogleDrive('file', { filename: `${draftsmanName}-${monthAndYear}.csv`, content: generalCsvContent, parentId: draftsmanFolderId, mimeType: 'text/csv' })
+    /*TEST END*/
+
+
+
+    /*ORIGINAL START*/
+
+    // await Promise.all(csvResults.map(csvRes => {
+    //   console.log('CSV injecttttttt');
+    //   return handleGoogleDrive('file', csvRes)
+    // }))
+    /*ORIGINAL END*/
 
 
   } catch (err) {
@@ -498,11 +565,9 @@ async function getDraftsmenUsers(filteredBoards) {
   try {
     let count = 0
     let users = await getUsers()
-    utilsService.sendLog('filteredBoardsLength', filteredBoards.map(itemBoard => itemBoard.name).length)
     let itemsColVals = await getItems(filteredBoards)
 
     const boardsNames = itemsColVals.map(items => items[0].board.name)
-    utilsService.sendLog('itemsColValsLength', itemsColVals.length)
 
     // const ramatEfal = itemsColVals.filter(items => items.some(item => item.board.name.includes('רמת אפעל')))
     // utilsService.sendLog('ramatEfal', ramatEfal)
@@ -624,7 +689,7 @@ async function getItems(filteredBoards) {
         
         boards(ids: ${board.id}) {
             name
-            items(limit: 600) {
+            items(limit: 500) {
               name
               id
               board{name id}
@@ -666,27 +731,77 @@ async function getItems(filteredBoards) {
 
 /*TEST START*/
 async function onUpdateColumns(req, res) {
-  try {
+  /*TEST START*/
+  const { shortLivedToken } = req.session
+  // const monday = initMondayClient()
+  monday.setToken(shortLivedToken)
+  /*TEST END*/
 
+
+
+
+  try {
+    /*TEST START*/
     var query = `query {
-      boards {
+      boards(limit:100000) {
         id
-        items {
-          id
-          column_values {
-            id
-            title
-            value
-            text
-          }
-        }
       }
     }`
 
-    const result = await monday.api(query)
+    const resBoardsIds = await monday.api(query)
 
-    const { boards } = result.data
+    const boardsIds = resBoardsIds.data.boards.map(board => board.id)
+    const prmBoards = boardsIds.map(async boardId => {
+      query = `query {
+          boards(ids:${boardId}) {
+             items {
+                id
+                column_values {
+                  id
+                  title
+                  text
+                }
+             }
+          }
+      }`
+      const itemsData = await monday.api(query)
+      const { items } = itemsData.data.boards[0]
+
+      return { id: boardId, items }
+    })
+    const boards = await Promise.all(prmBoards)
+    /*TEST END*/
+
+
+
+    /*ORIGINAL START*/
+    // var query = `query {
+    //     boards(limit:1000) {
+    //       id
+    //       items(limit:500) {
+    //         id
+    //         column_values {
+    //           id
+    //           title
+    //           text
+    //         }
+    //       }
+    //     }
+    //   }`
+
+    // const result = await monday.api(query)
+    // console.log('onUpdateColumns -> result', result)
+
+    // const { boards } = result.data
+
+    /*ORIGINAL END*/
+
+
+
+
+
     boards.forEach(async board => {
+      console.log('onUpdateColumns -> board', board)
       const items = board.items
 
       /*
@@ -783,22 +898,27 @@ async function onUpdateColumns(req, res) {
 
 
 async function updateColumns(itemsColValsMap, boardId) {
+  try {
 
-  const prmMutations = []
-  for (let itemId in itemsColValsMap) {
-    const colVal = itemsColValsMap[itemId]
-    const value = (+colVal.from.text + (+colVal.to.text)) || ''
-    const query = `mutation {
+    const prmMutations = []
+    for (let itemId in itemsColValsMap) {
+      const colVal = itemsColValsMap[itemId]
+      const value = (+colVal.from.text + (+colVal.to.text)) || ''
+      const query = `mutation {
       change_multiple_column_values (board_id: ${boardId}, item_id: ${itemId}, column_values: ${JSON.stringify(JSON.stringify({ [colVal.from.id]: '', [colVal.to.id]: value }))}) {
         id
       }
     }`
-    const res = monday.api(query)
-    prmMutations.push(res)
+      const res = monday.api(query)
+      prmMutations.push(res)
 
+    }
+
+    return Promise.all(prmMutations)
+  } catch (err) {
+    throw err
   }
 
-  return Promise.all(prmMutations)
 }
 
 async function trying() {
