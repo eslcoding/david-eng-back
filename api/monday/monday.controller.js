@@ -749,12 +749,13 @@ async function onUpdateColumns(req, res) {
   try {
     /*TEST START*/
     var query = `query {
-      boards(limit:100000) {
+      boards(limit:1000) {
         id
       }
     }`
 
     const resBoardsIds = await monday.api(query)
+    console.log('onUpdateColumns -> resBoardsIds', resBoardsIds)
 
     const boardsIds = resBoardsIds.data.boards.map(board => board.id)
     const prmBoards = boardsIds.map(async boardId => {
@@ -782,7 +783,7 @@ async function onUpdateColumns(req, res) {
 
     /*ORIGINAL START*/
     // var query = `query {
-    //     boards(limit:1000) {
+  //     boards(limit:1000) {
     //       id
     //       items(limit:500) {
     //         id
