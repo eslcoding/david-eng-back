@@ -16,11 +16,12 @@ function isHebrew(str) {
 }
 
 function getDateRange() {
-  const currMonth = new Date().getMonth()
-  const firstDayDate = new Date(new Date().setDate(1))
+  const tommorowTimeTamp = Date.now() + 1000 * 60 ** 2 * 24 
+  const currMonth = new Date(tommorowTimeTamp).getMonth()
+  const firstDayDate = new Date(new Date(tommorowTimeTamp).setDate(1))
   const start = new Date(firstDayDate.setMonth(currMonth - 1))
   const end = new Date(firstDayDate.setMonth(currMonth))
-  return {start, end}
+  return { start, end }
 }
 
 

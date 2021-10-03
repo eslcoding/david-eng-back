@@ -313,7 +313,6 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   const searchTerm = {
     date: utilsService.getDateRange(),
     draftsman: { nameStr: username }
-
   }
 
 
@@ -399,8 +398,8 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
         let date = new Date(colVal.text)
         let start = new Date(searchTerm.date.start)
         let end = new Date(searchTerm.date.end)
-        start.setHours(0, 0)
-        end.setHours(23, 59)
+        start.setHours(4, 0)
+        end.setHours(23, 55)
         if (colsToUse.dateId === colVal.id) {
           start = start.getTime() || -Infinity
           end = end.getTime() || Infinity
@@ -734,7 +733,6 @@ async function getItems(filteredBoards) {
 
 
 // onUpdateColumns()
-
 /*TEST START*/
 async function onUpdateColumns(req, res) {
   /*TEST START*/
@@ -749,6 +747,9 @@ async function onUpdateColumns(req, res) {
   try {
     /*TEST START*/
     var query = `query {
+      complexity {
+        query
+      }
       boards(limit:1000) {
         id
       }
@@ -761,7 +762,7 @@ async function onUpdateColumns(req, res) {
     const prmBoards = boardsIds.map(async boardId => {
       query = `query {
           boards(ids:${boardId}) {
-             items {
+             items (limit: 1000) {
                 id
                 column_values {
                   id
@@ -772,6 +773,7 @@ async function onUpdateColumns(req, res) {
           }
       }`
       const itemsData = await monday.api(query)
+      console.log('onUpdateColumns -> itemsData', itemsData)
       const { items } = itemsData.data.boards[0]
 
       return { id: boardId, items }
