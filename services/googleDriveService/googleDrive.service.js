@@ -134,6 +134,7 @@ function uploadFile(auth, data) {
       'name': data.filename,
     };
     if (data.parentId) fileMetadata.parents = [data.parentId]
+    if (data.mimeType === 'text/csv') fileMetadata.mimeType = 'application/vnd.google-apps.spreadsheet'
 
     var media = {
       mimeType: data.mimeType,

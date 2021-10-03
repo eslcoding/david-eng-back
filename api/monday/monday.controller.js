@@ -20,7 +20,6 @@ async function getInter(req, res) {
   gRes = res
   try {
     const { shortLivedToken } = req.session
-    // const monday = initMondayClient()
     monday.setToken(shortLivedToken)
     const date = new Date().toDateString().replace(/ /ig, '_')
     const monthAndYear = mondayService.getFormattedMonthAndYear()
@@ -748,7 +747,9 @@ async function onUpdateColumns(req, res) {
     /*TEST START*/
     var query = `query {
       complexity {
+        before
         query
+        after
       }
       boards(limit:1000) {
         id
