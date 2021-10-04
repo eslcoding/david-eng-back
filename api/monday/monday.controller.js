@@ -315,11 +315,6 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   }
 
 
-
-
-
-
-
   let itemsByBoards = {}
   /*ORIGINAL START*/
   // await sleep(10000)
@@ -690,7 +685,7 @@ async function getItems(filteredBoards) {
     const prmBoards = filteredBoards.map(async (board, idx) => {
 
       var query = `query {
-        
+       
         boards(ids: ${board.id}) {
             name
             items(limit: 500) {
@@ -711,7 +706,7 @@ async function getItems(filteredBoards) {
     })
 
     var boardsWithItems = await Promise.all(prmBoards)
-
+    
     // console.log('boardsWithItems[boardsWithItems.length-1]: ', boardsWithItems[boardsWithItems.length-1], 'boardsWithItems[boardsWithItems.length-1]:');
 
     /*ORIGINAL END*/
@@ -763,9 +758,7 @@ async function onUpdateColumns(req, res) {
 
     const resBoardsIds = await monday.api(query)
     console.log('onUpdateColumns -> resBoardsIds', resBoardsIds)
-
     const boardsIds = resBoardsIds.data.boards.map(board => board.id)
-
     /*TEST START*/
     const boards = []
     for (let boardId of boardsIds) {
