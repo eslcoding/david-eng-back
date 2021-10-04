@@ -29,12 +29,16 @@ module.exports = {
 
 
 
+
+global.expTime = ''
+
 async function authenticationMiddleware(req, res, next) {
   console.log('req.query: ', req.query);
-  
+
   const jwt = require('jsonwebtoken');
   try {
     let { authorization } = req.headers;
+    global.auth = authorization
     if (!authorization && req.query) {
       authorization = req.query.token;
     }
@@ -42,9 +46,12 @@ async function authenticationMiddleware(req, res, next) {
       authorization,
       process.env.MONDAY_SIGNING_SECRET
     );
-    const timeDiff = jwtRes.exp - jwtRes.iat
+    const timeDiff = jwtRes.exp - Date.now()/1000
+    global.expTime = jwtRes.exp
+    console.log('authenticationMiddleware -> timeDiff', timeDiff)
 
     const { accountId, userId, backToUrl, shortLivedToken } = jwtRes
+    console.log('authenticationMiddleware -> shortLivedToken', shortLivedToken)
     req.session = { accountId, userId, backToUrl, shortLivedToken };
     next();
   } catch (err) {

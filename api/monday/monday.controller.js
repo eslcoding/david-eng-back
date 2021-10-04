@@ -735,9 +735,14 @@ async function getItems(filteredBoards) {
 /*TEST START*/
 async function onUpdateColumns(req, res) {
   /*TEST START*/
+
   const { shortLivedToken } = req.session
-  // const monday = initMondayClient()
   monday.setToken(shortLivedToken)
+  const timeDiff = global.expTime - Date.now() / 1000
+  console.log('onUpdateColumns -> timeDiff', timeDiff)
+  console.log('onUpdateColumns -> shortLivedToken', shortLivedToken)
+
+
   /*TEST END*/
 
 
@@ -760,8 +765,17 @@ async function onUpdateColumns(req, res) {
     console.log('onUpdateColumns -> resBoardsIds', resBoardsIds)
 
     const boardsIds = resBoardsIds.data.boards.map(board => board.id)
-    const prmBoards = boardsIds.map(async boardId => {
+
+    /*TEST START*/
+    const boards = []
+    for (let boardId of boardsIds) {
+
       query = `query {
+        complexity {
+          before
+          query
+          after
+        }
           boards(ids:${boardId}) {
              items (limit: 1000) {
                 id
@@ -777,41 +791,49 @@ async function onUpdateColumns(req, res) {
       console.log('onUpdateColumns -> itemsData', itemsData)
       const { items } = itemsData.data.boards[0]
 
-      return { id: boardId, items }
-    })
-    const boards = await Promise.all(prmBoards)
+      boards.push({ id: boardId, items })
+    }
     /*TEST END*/
 
 
 
     /*ORIGINAL START*/
-    // var query = `query {
-  //     boards(limit:1000) {
-    //       id
-    //       items(limit:500) {
-    //         id
-    //         column_values {
-    //           id
-    //           title
-    //           text
-    //         }
-    //       }
+    // const prmBoards = boardsIds.map(async boardId => {
+    //   query = `query {
+    //     complexity {
+    //       before
+    //       query
+    //       after
     //     }
+    //       boards(ids:${boardId}) {
+    //          items (limit: 1000) {
+    //             id
+    //             column_values {
+    //               id
+    //               title
+    //               text
+    //             }
+    //          }
+    //       }
     //   }`
+    //   const itemsData = await monday.api(query)
+    //   console.log('onUpdateColumns -> itemsData', itemsData)
+    //   const { items } = itemsData.data.boards[0]
 
-    // const result = await monday.api(query)
-    // console.log('onUpdateColumns -> result', result)
-
-    // const { boards } = result.data
-
+    //   return { id: boardId, items }
+    // })
+    // const boards = await Promise.all(prmBoards)
     /*ORIGINAL END*/
 
 
 
 
 
+
+
+
+
     boards.forEach(async board => {
-      console.log('onUpdateColumns -> board', board)
       const items = board.items
 
       /*
