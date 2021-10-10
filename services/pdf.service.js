@@ -52,7 +52,7 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
 
   const { applyPlugin } = require('../data/cdnjs/jspdf.plugin.autotable.min')
   applyPlugin(jsPDF)
-  const doc = new jsPDF('l', 'mm', 'a4')
+  const doc = new jsPDF('p', 'mm', 'a3')
   doc.addFileToVFS("MyFont.ttf", myFont);
   doc.addFont("MyFont.ttf", "MyFont", "normal");
   doc.setFont("MyFont");
@@ -64,7 +64,7 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
     theme: 'grid',
     styles: {
       font: 'MyFont',
-      fontSize: 12,
+      fontSize: 10,
       halign: 'right',
     },
 
@@ -115,11 +115,11 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
       startY: startYPos,
       // showHead: 'firstPage',
 
-      minCellWidth: 150,
+      minCellWidth: 80,
 
       head: [BodyAndHead.head],
       body: BodyAndHead.body,
-      foot: [[{ content: BodyAndHead.boardName, colSpan: BodyAndHead.head.length, rowSpan: 1, styles: { halign: 'center', fontStyle: 'bold', fontSize: 13, cellPadding: 5 } }]],
+      foot: [[{ content: BodyAndHead.boardName, colSpan: BodyAndHead.head.length, rowSpan: 1, styles: { halign: 'center', fontStyle: 'bold', fontSize: 11, cellPadding: 5 } }]],
 
       didParseCell: (data) => {
         if (data.section === 'foot') return

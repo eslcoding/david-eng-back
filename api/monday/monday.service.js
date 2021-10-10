@@ -4,7 +4,7 @@ const dbService = require('../../services/db.service');
 const { isHebrew } = require('../../services/utils.service');
 
 
-const titles = ["סטטוס שרטוט", "שרטט", "גרסה", "תאריך תכנית", "סטטוס תכנית", "ראש צוות", "בקר", "מהנדס", "תאריך שרטוט", "שעות עבודה במצטבר", "שעות עבודה חודש נוכחי"]
+const titles = ["שרטט", "גרסה", "תאריך תכנית", "סטטוס תכנית", "מהנדס", "שעות עבודה במצטבר", "שעות עבודה חודש נוכחי"]
 
 function getDraftsmanBoard(boards) {
   return boards.filter((board) => {

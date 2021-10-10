@@ -55,8 +55,13 @@ async function getInter(req, res) {
   } finally {
     console.log('is end?');
 
-    await onUpdateColumns(req, res)
-    // return res.end()
+    //!Comment in in prod
+    // await onUpdateColumns(req, res)
+
+
+    //!REMOVE IN PROD
+    return res.end()
+    //!REMOVE IN PROD
 
   }
 }
@@ -246,6 +251,7 @@ async function interStage2(filteredBoards) {
 /*ORIGINAL START*/
 async function interStage3(users, filteredBoards, itemsColVals) {
 
+  
 
   try {
     // users.forEach(async user => {
@@ -552,13 +558,11 @@ function getDraftsmanSummery(draftsManData, draftsmanName) {
   titles.unshift('עד תאריך')
   titles.unshift('מספר תכניות')
   titles.unshift('סכום שעות עבודה חודש נוכחי')
-  titles.unshift('שעות עבודה במצטבר')
   body.unshift(draftsmanName)
   body.unshift(dateRange.start.toLocaleDateString('he'))
   body.unshift(dateRange.end.toLocaleDateString('he'))
   body.unshift(mondayService.getNumOfItems(draftsManData))
   body.unshift(mondayService.getWorkHoursSum(draftsManData, 'שעות עבודה חודש נוכחי') + '')
-  body.unshift(mondayService.getWorkHoursSum(draftsManData, 'שעות עבודה במצטבר') + '')
   return { titles, body }
 
 }
