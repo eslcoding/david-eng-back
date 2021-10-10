@@ -1,11 +1,12 @@
 const router = require('express').Router();
 const { authenticationMiddleware } = require('../../middlewares/requireAuth.middleware');
 
-const {getInter, onUpdateColumns, getInterTest} = require('./monday.controller');
+const {getInter, onUpdateColumns, getInterTest, getAuthToken} = require('./monday.controller');
 
 router.post('/inter',authenticationMiddleware, getInter);
 router.post('/interTest',authenticationMiddleware, getInterTest);
 router.post('/updateColumns',authenticationMiddleware, onUpdateColumns);
+router.get('/auth', getAuthToken);
 // router.post('/updateColumns',authenticationMiddleware, testMailPdf);
 
 
