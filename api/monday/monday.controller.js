@@ -55,13 +55,10 @@ async function getInter(req, res) {
   } finally {
     console.log('is end?');
 
-    //!Comment in in prod
-    // await onUpdateColumns(req, res)
+    await onUpdateColumns(req, res)
 
 
-    //!REMOVE IN PROD
-    return res.end()
-    //!REMOVE IN PROD
+   
 
   }
 }
@@ -254,9 +251,9 @@ async function interStage3(users, filteredBoards, itemsColVals) {
   
 
   try {
+    
     // users.forEach(async user => {
     for (let user of users) {
-
       // await sleep(1000)
       const itemsByBoards = await filterBoards(filteredBoards, user.name, itemsColVals)
       const itemsVals = Object.values(itemsByBoards)
