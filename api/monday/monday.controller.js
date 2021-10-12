@@ -58,7 +58,7 @@ async function getInter(req, res) {
     await onUpdateColumns(req, res)
 
 
-   
+
 
   }
 }
@@ -248,10 +248,10 @@ async function interStage2(filteredBoards) {
 /*ORIGINAL START*/
 async function interStage3(users, filteredBoards, itemsColVals) {
 
-  
+
 
   try {
-    
+
     // users.forEach(async user => {
     for (let user of users) {
       // await sleep(1000)
@@ -263,11 +263,9 @@ async function interStage3(users, filteredBoards, itemsColVals) {
         const { folderId: draftsmanFolderId } = await handleGoogleDrive('folder', { name: user.name, parentId: gDateFolderId })
         await getCsvTable(items, user.name, draftsmanFolderId)
         await getPdfTable(items, user.name, draftsmanFolderId)
-
       }
-
-
     }
+
   } catch (err) {
     console.log('err interStage3: ', err);
 
@@ -737,7 +735,7 @@ async function getItems(filteredBoards) {
 /*TEST START*/
 async function onUpdateColumns(req, res) {
   /*TEST START*/
- 
+
 
   monday.setToken(process.env.MONDAY_TOKEN)
   const timeDiff = global.expTime - Date.now() / 1000
