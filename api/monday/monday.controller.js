@@ -57,12 +57,7 @@ async function getInter(req, res) {
   } finally {
     console.log('is end?');
 
-    //! remove in production
-    return res.end()
-
-    // await onUpdateColumns(req, res)
-
-
+    await onUpdateColumns(req, res)
 
 
   }
