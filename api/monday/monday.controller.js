@@ -21,6 +21,7 @@ async function getInter(req, res) {
     const { shortLivedToken } = req.session
 
     monday.setToken(process.env.MONDAY_TOKEN)
+    // monday.setToken(shortLivedToken)
     // monday.setToken(global.token)
     // monday.setToken(shortLivedToken)
     const date = new Date().toDateString().replace(/ /ig, '_')
@@ -44,6 +45,7 @@ async function getInter(req, res) {
     const result = await monday.api(query)
     // utilsService.sendLog('complexity1', result.data.complexity)
     const _boards = result.data.boards
+    console.log('boards -> _boards', _boards)
     const filteredBoards = mondayService.getDraftsmanBoard(_boards)
 
     await interStage2(filteredBoards)
@@ -55,7 +57,10 @@ async function getInter(req, res) {
   } finally {
     console.log('is end?');
 
-    await onUpdateColumns(req, res)
+    //! remove in production
+    return res.end()
+
+    // await onUpdateColumns(req, res)
 
 
 
@@ -623,7 +628,6 @@ async function getItems(filteredBoards) {
   try {
     console.log('get items');
     /*TEST START*/
-    //********************
     // var boardsWithItems = []
     // for (let board of filteredBoards) {
 
@@ -648,49 +652,15 @@ async function getItems(filteredBoards) {
     //   const resBoard = await monday.api(query)
     //   boardsWithItems.push(resBoard)
     // }
-    //********************
-
-
-    // const boardsIds = filteredBoards.map(board => board.id)
-    // var query = `query {
-
-    //     complexity{
-    //       before
-    //       query
-    //       after
-    //     }
-
-    //     boards(ids: [${boardsIds.slice(0, 2)}]) {
-
-    //         name
-    //         items {
-    //           name
-    //           id
-    //           board{name id}
-    //           column_values {
-    //                 text
-    //                 id
-    //                 value
-    //                 type
-    //                 title
-    //             }
-    //         }
-    //     }
-    // }`
-    // const result = await monday.api(query)
-    // utilsService.sendLog('getItems_result', result)
-    // return 
-    //********************
-
     /*TEST END*/
 
 
+    /*TEST START2*/
+    // const _tasks = filteredBoards.map((board, idx) => {
 
-    /*ORIGINAL START*/
-    const prmBoards = filteredBoards.map(async (board, idx) => {
+    const _tasks = filteredBoards.map((board, idx) => {
 
       var query = `query {
-       
         boards(ids: ${board.id}) {
             name
             items(limit: 500) {
@@ -707,12 +677,41 @@ async function getItems(filteredBoards) {
             }
         }
     }`
-      return monday.api(query)
+      return createQueryTask(query)
     })
+    
+    var boardsWithItems = await createQueue(_tasks, 4)
 
-    var boardsWithItems = await Promise.all(prmBoards)
+    /*TEST END2*/
 
-    // console.log('boardsWithItems[boardsWithItems.length-1]: ', boardsWithItems[boardsWithItems.length-1], 'boardsWithItems[boardsWithItems.length-1]:');
+
+
+
+    /*ORIGINAL START*/
+    // const prmBoards = filteredBoards.map(async (board, idx) => {
+
+    //   var query = `query {
+    //     boards(ids: ${board.id}) {
+    //         name
+    //         items(limit: 500) {
+    //           name
+    //           id
+    //           board{name id}
+    //           column_values {
+    //                 text
+    //                 id
+    //                 value
+    //                 type
+    //                 title
+    //             }
+    //         }
+    //     }
+    // }`
+    //   return monday.api(query)
+    // })
+
+    // var boardsWithItems = await Promise.all(prmBoards)
+
 
     /*ORIGINAL END*/
     // utilsService.sendLog('getItems_BoardsWithItems', boardsWithItems)
@@ -739,7 +738,6 @@ async function onUpdateColumns(req, res) {
 
   monday.setToken(process.env.MONDAY_TOKEN)
   const timeDiff = global.expTime - Date.now() / 1000
-  console.log('onUpdateColumns -> timeDiff', timeDiff)
   // console.log('onUpdateColumns -> shortLivedToken', shortLivedToken)
   /*TEST END*/
 
@@ -856,7 +854,6 @@ async function onUpdateColumns(req, res) {
         return acc
 
       }, {})
-      // console.log('itemsColValsMap: ', itemsColValsMap);
 
       await updateColumns(itemsColValsMap, board.id)
     }
@@ -946,7 +943,6 @@ async function updateColumns(itemsColValsMap, boardId) {
 
 const createQueryTask = (query) => async () => {
   return monday.api(query)
-
 }
 
 

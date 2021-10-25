@@ -100,7 +100,7 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
     doc.setR2L(true)
     console.log('doc.lastAutoTable.finalY: ', doc.lastAutoTable.finalY);
 
-    const startYPos = !doc.lastAutoTable.finalY ? 10 : doc.lastAutoTable.finalY + 40
+    const startYPos = !doc.lastAutoTable.finalY ? 5 : doc.lastAutoTable.finalY + 5
     doc.autoTable({
       theme: 'grid',
       headStyles: { fillColor: '#2B80BA' },
@@ -108,7 +108,7 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
       alternateRowStyles: { fillColor: '#f0f0f0' },
       styles: {
         font: 'MyFont',
-        fontSize: 10,
+        fontSize: 9,
         halign: 'right',
       },
       rowPageBreak: 'avoid',
@@ -119,7 +119,7 @@ async function buildTablesPDF(boardsBodyAndHead, summery) {
 
       head: [BodyAndHead.head],
       body: BodyAndHead.body,
-      foot: [[{ content: BodyAndHead.boardName, colSpan: BodyAndHead.head.length, rowSpan: 1, styles: { halign: 'center', fontStyle: 'bold', fontSize: 11, cellPadding: 5 } }]],
+      foot: [[{ content: BodyAndHead.boardName, colSpan: BodyAndHead.head.length, rowSpan: 1, styles: { halign: 'center', fontStyle: 'bold', fontSize: 10, cellPadding: 4 } }]],
 
       didParseCell: (data) => {
         if (data.section === 'foot') return
