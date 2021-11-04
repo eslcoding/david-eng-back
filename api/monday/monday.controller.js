@@ -667,7 +667,7 @@ async function getItems(filteredBoards) {
     }`
       return createQueryTask(query)
     })
-    
+
     var boardsWithItems = await createQueue(_tasks, 3)
 
     /*TEST END2*/
@@ -930,8 +930,14 @@ function createQueue(tasks, maxNumOfWorkers = 4, type = 'query') {
 
   return new Promise(done => {
     const handleResult = index => result => {
-      console.log(type+' createQueue -> index, result', index, result)
+      console.log(type + ' createQueue -> index, result', index, result)
       tasks[index] = result;
+      if (result.data.complexity) {
+        const { before, query, after } = result.data.complexity
+        if (after < query) {
+          sleep(10000)
+        }
+      }
       numOfWorkers--;
       getNextTask();
     };
