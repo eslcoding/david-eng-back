@@ -23,7 +23,6 @@ async function getInter(req, res) {
     monday.setToken(process.env.MONDAY_TOKEN)
     // monday.setToken(shortLivedToken)
     // monday.setToken(global.token)
-    // monday.setToken(shortLivedToken)
     const date = new Date().toDateString().replace(/ /ig, '_')
     const monthAndYear = mondayService.getFormattedMonthAndYear()
     const { folderId: dateFolderId } = await handleGoogleDrive('folder', { parentId: null, name: monthAndYear })
@@ -58,6 +57,8 @@ async function getInter(req, res) {
     console.log('is end?');
 
     await onUpdateColumns(req, res)
+    global.isReqOn = false
+
 
 
   }
@@ -314,7 +315,6 @@ function deleyFunc(func, time, ...args) {
 
 
 async function filterBoards(filteredBoards, username, itemsColVals) {
-  console.log('filterBoards -> username', username)
 
   const searchTerm = {
     date: utilsService.getDateRange(),
@@ -351,7 +351,6 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   // })
   // let boardsWithItems = await Promise.all(prmBoards)
   // let testBoardsWithItems = boardsWithItems.map(board => board.errors)
-  // console.log('filterBoards -> testBoardsWithItems', testBoardsWithItems, 'filterBoards -> testBoardsWithItems')
 
   // boardsWithItems = boardsWithItems.filter(board => !board.errors)
 
@@ -362,7 +361,6 @@ async function filterBoards(filteredBoards, username, itemsColVals) {
   let boardsWithItems = itemsColVals
   /*TEST END*/
 
-  // console.log('filterBoards -> boardsWithItems', boardsWithItems, 'filterBoards -> boardsWithItems')
   // saveAndPrintJson(boardsWithItems)
 
   boardsWithItems.forEach((items, idx) => {
@@ -440,7 +438,6 @@ async function getCsvTable(items, draftsmanName, draftsmanFolderId) {
 
     const fields = ['שם תכנית', ...mondayService.getTitles(items[0])]
     const spaces = fields.map(field => ', ').join('')
-    console.log('getCsvTable -> spaces', spaces)
     // const fields = ['שם תכנית', ...mondayService.getTitles(items)]
 
 
@@ -572,16 +569,12 @@ async function getDraftsmenUsers(filteredBoards) {
     let itemsColVals = await getItems(filteredBoards)
 
     const boardsNames = itemsColVals.map(items => items[0].board.name)
-    console.log('getDraftsmenUsers -> boardsNames', boardsNames)
 
     // const ramatEfal = itemsColVals.filter(items => items.some(item => item.board.name.includes('רמת אפעל')))
     // utilsService.sendLog('ramatEfal', ramatEfal)
 
     users = users.filter(user => {
       return itemsColVals.some(itemsPerBoard => {
-        // if (user.name === 'Ludmila Ivaschenko') {
-        //   utilsService.sendLog(`ludmilaItemBoard${count}`, itemsPerBoard)
-        // }
         return itemsPerBoard.some(item => {
           return item.column_values.some(colVal => {
             return (colVal.title === 'שרטט') && colVal.text.includes(user.name)
@@ -675,7 +668,7 @@ async function getItems(filteredBoards) {
       return createQueryTask(query)
     })
     
-    var boardsWithItems = await createQueue(_tasks, 4)
+    var boardsWithItems = await createQueue(_tasks, 2)
 
     /*TEST END2*/
 
@@ -733,7 +726,6 @@ async function onUpdateColumns(req, res) {
 
   monday.setToken(process.env.MONDAY_TOKEN)
   const timeDiff = global.expTime - Date.now() / 1000
-  // console.log('onUpdateColumns -> shortLivedToken', shortLivedToken)
   /*TEST END*/
 
   try {
@@ -749,10 +741,8 @@ async function onUpdateColumns(req, res) {
     }`
 
     const resBoardsIds = await monday.api(query)
-    console.log('onUpdateColumns -> resBoardsIds', resBoardsIds)
 
     const boardsIds = resBoardsIds.data.boards.map(board => board.id)
-    console.log('onUpdateColumns -> boardsIds', boardsIds)
 
 
     // * ready to check
@@ -784,11 +774,10 @@ async function onUpdateColumns(req, res) {
 
       tasks.push(createQueryTask(query))
       // const itemsData = await monday.api(query)
-      // console.log('onUpdateColumns -> itemsData', itemsData)
       // const { items } = itemsData.data.boards[0]
       boards.push({ id: boardId })
     }
-    const doneTasks = await createQueue(tasks, 3)
+    const doneTasks = await createQueue(tasks, 2)
     for (let i = 0; i < doneTasks.length; i++) {
       const { items } = doneTasks[i].data.boards[0]
       boards[i].items = items
@@ -814,9 +803,7 @@ async function onUpdateColumns(req, res) {
     //       }
     //   }`
 
-    //   console.log('onUpdateColumns -> boardId', boardId)
     //   const itemsData = await monday.api(query)
-    //   console.log('onUpdateColumns -> itemsData', itemsData)
     //   const { items } = itemsData.data.boards[0]
     //   boards.push({ id: boardId, items })
     // }
@@ -886,7 +873,6 @@ async function updateColumns(itemsColValsMap, boardId) {
       // if (!colVal.to) colVal.to = { id: '', title: '', text: '' }
       // if (!colVal.from) colVal.from = { id: '', title: '', text: '' }
       if (!colVal.to || !colVal.from || !colVal.from.text) continue
-      console.log('updateColumns -> colVal', colVal)
       const value = ((+colVal.from?.text || '') + (+colVal?.to?.text || '')) || ''
       const query = `mutation {
       change_multiple_column_values (board_id: ${boardId}, item_id: ${itemId}, column_values: ${JSON.stringify(JSON.stringify({ [colVal?.from?.id]: '', [colVal.to.id]: value }))}) {
@@ -914,7 +900,6 @@ async function updateColumns(itemsColValsMap, boardId) {
   //     const colVal = itemsColValsMap[itemId]
   //     if (!colVal.to) colVal.to = { id: '', title: '', text: '' }
   //     if (!colVal.from) colVal.from = { id: '', title: '', text: '' }
-  //     console.log('updateColumns -> colVal', colVal)
   //     const value = ((+colVal.from?.text || '') + (+colVal?.to?.text || '')) || ''
   //     const query = `mutation {
   //     change_multiple_column_values (board_id: ${boardId}, item_id: ${itemId}, column_values: ${JSON.stringify(JSON.stringify({ [colVal?.from?.id]: '', [colVal.to.id]: value }))}) {
