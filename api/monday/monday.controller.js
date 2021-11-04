@@ -668,7 +668,7 @@ async function getItems(filteredBoards) {
       return createQueryTask(query)
     })
     
-    var boardsWithItems = await createQueue(_tasks, 2)
+    var boardsWithItems = await createQueue(_tasks, 3)
 
     /*TEST END2*/
 
@@ -777,7 +777,7 @@ async function onUpdateColumns(req, res) {
       // const { items } = itemsData.data.boards[0]
       boards.push({ id: boardId })
     }
-    const doneTasks = await createQueue(tasks, 2)
+    const doneTasks = await createQueue(tasks, 3)
     for (let i = 0; i < doneTasks.length; i++) {
       const { items } = doneTasks[i].data.boards[0]
       boards[i].items = items
@@ -862,8 +862,6 @@ async function onUpdateColumns(req, res) {
 
 async function updateColumns(itemsColValsMap, boardId) {
 
-
-
   /*TEST START*/
   try {
 
@@ -877,13 +875,13 @@ async function updateColumns(itemsColValsMap, boardId) {
       const query = `mutation {
       change_multiple_column_values (board_id: ${boardId}, item_id: ${itemId}, column_values: ${JSON.stringify(JSON.stringify({ [colVal?.from?.id]: '', [colVal.to.id]: value }))}) {
         id
-      }
-    }`
+       }
+      }`
 
       tasks.push(createQueryTask(query))
 
     }
-    const doneTasks = await createQueue(tasks, 2)
+    const doneTasks = await createQueue(tasks, 1, 'mutation')
     return doneTasks
   } catch (err) {
     throw err
@@ -926,13 +924,13 @@ const createQueryTask = (query) => async () => {
 }
 
 
-function createQueue(tasks, maxNumOfWorkers = 4) {
+function createQueue(tasks, maxNumOfWorkers = 4, type = 'query') {
   var numOfWorkers = 0;
   var taskIndex = 0;
 
   return new Promise(done => {
     const handleResult = index => result => {
-      console.log('createQueue -> index, result', index, result)
+      console.log(type+' createQueue -> index, result', index, result)
       tasks[index] = result;
       numOfWorkers--;
       getNextTask();
