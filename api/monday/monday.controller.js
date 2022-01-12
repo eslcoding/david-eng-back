@@ -809,7 +809,7 @@ const createQueryTask = (query) => async () => {
   return monday.api(query);
 };
 
-function createQueue(tasks, maxNumOfWorkers = 4) {
+function createQueue(tasks, maxNumOfWorkers = 4, type = "query") {
   var numOfWorkers = 0;
   var taskIndex = 0;
 
@@ -817,6 +817,12 @@ function createQueue(tasks, maxNumOfWorkers = 4) {
     const handleResult = (index) => (result) => {
       console.log("createQueue -> index, result", index, result);
       tasks[index] = result;
+      if (result.data.complexity) {
+        const { before, query, after } = result.data.complexity;
+        if (after < query) {
+          sleep(10000);
+        }
+      }
       numOfWorkers--;
       getNextTask();
     };
