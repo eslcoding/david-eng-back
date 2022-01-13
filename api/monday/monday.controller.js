@@ -54,7 +54,7 @@ async function getInter(req, res) {
     console.log("get interrrrrr   err: ", err);
   } finally {
     console.log("is end?");
-    // await onUpdateColumns(req, res)
+    await onUpdateColumns(req, res)
     global.isReqOn = false;
   }
 }
