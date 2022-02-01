@@ -815,8 +815,8 @@ function createQueue(tasks, maxNumOfWorkers = 4, type = "query") {
     const handleResult = (index) => (result) => {
       console.log("createQueue -> index, result", index, result);
       tasks[index] = result;
-      if (result.data.complexity) {
-        const { before, query, after } = result.data.complexity;
+      if (result?.data?.complexity) {
+        const { before, query, after } = result?.data?.complexity;
         if (after < query) {
           sleep(10000);
         }
