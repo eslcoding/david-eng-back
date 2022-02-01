@@ -21,8 +21,6 @@ async function getInter(req, res) {
     const { shortLivedToken } = req.session;
 
     monday.setToken(process.env.MONDAY_TOKEN);
-    // monday.setToken(shortLivedToken)
-    // monday.setToken(global.token)
     const date = new Date().toDateString().replace(/ /gi, "_");
     const monthAndYear = mondayService.getFormattedMonthAndYear();
     const { folderId: dateFolderId } = await handleGoogleDrive("folder", {
@@ -54,7 +52,7 @@ async function getInter(req, res) {
     console.log("get interrrrrr   err: ", err);
   } finally {
     console.log("is end?");
-    await onUpdateColumns(req, res)
+    // await onUpdateColumns(req, res); //!temp for testing!!!
     global.isReqOn = false;
   }
 }
