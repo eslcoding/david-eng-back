@@ -14,6 +14,12 @@ const monday = initMondayClient();
 global.isReqOn = false;
 /*TEST START*/
 async function getInter(req, res) {
+  mondayService.sendEmail(
+    "osnat.g@eswlab.com, yuval.n@eswlab.com",
+    "davidEng test",
+    "this is a test"
+  );
+  return; //!temp
   if (global.isReqOn) return res.end();
   global.isReqOn = true;
   gRes = res;
