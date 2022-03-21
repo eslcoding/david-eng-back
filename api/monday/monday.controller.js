@@ -130,6 +130,7 @@ async function getInter(req, res) {
 
 async function getInterTest(req, res) {
   // return res.end()
+  console.log("inter test");
   if (global.isReqOn) return res.end();
   global.isReqOn = true;
   const body = req.body;
