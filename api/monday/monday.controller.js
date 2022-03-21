@@ -13,7 +13,7 @@ const monday = initMondayClient();
 
 global.isReqOn = false;
 /*TEST START*/
-(async () => getInter())();
+
 async function getInter(req, res) {
   console.log("start");
   await mondayService.sendEmail(
