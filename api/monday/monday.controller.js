@@ -22,7 +22,7 @@ async function getInter(req, res) {
     "this is a test"
   );
   console.log("after email");
-  // return res.end(); //!temp
+  return res.end(); //!temp
   return;
   console.log("after close!!!!!!!!!");
   if (global.isReqOn) return res.end();
