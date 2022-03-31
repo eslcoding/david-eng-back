@@ -16,12 +16,16 @@ global.isReqOn = false;
 
 async function getInter(req, res) {
   console.log("start");
-  // await mondayService.sendEmail(
-  //   "yuval.n@eswlab.com",
-  //   "davidEng test",
-  //   "this is a test"
-  // );
-  // console.log("after email");
+  try {
+    await mondayService.sendEmail(
+      "yuval.n@eswlab.com",
+      "davidEng test",
+      "starting davidENG"
+    );
+  } catch (error) {
+    console.log(`getInter -> error`, error);
+  }
+  console.log("after email");
   // return res.end(); //!temp
   // return;
   // console.log("after close!!!!!!!!!");
