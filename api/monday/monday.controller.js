@@ -16,15 +16,15 @@ global.isReqOn = false;
 
 async function getInter(req, res) {
   console.log("start");
-  await mondayService.sendEmail(
-    "yuval.n@eswlab.com",
-    "davidEng test",
-    "this is a test"
-  );
-  console.log("after email");
-  return res.end(); //!temp
-  return;
-  console.log("after close!!!!!!!!!");
+  // await mondayService.sendEmail(
+  //   "yuval.n@eswlab.com",
+  //   "davidEng test",
+  //   "this is a test"
+  // );
+  // console.log("after email");
+  // return res.end(); //!temp
+  // return;
+  // console.log("after close!!!!!!!!!");
   if (global.isReqOn) return res.end();
   global.isReqOn = true;
   gRes = res;
@@ -54,6 +54,7 @@ async function getInter(req, res) {
       }
     }}`;
     const result = await monday.api(query);
+    console.log(`boards -> result`, result);
     // utilsService.sendLog('complexity1', result.data.complexity)
     const _boards = result.data.boards;
     const filteredBoards = mondayService.getDraftsmanBoard(_boards);
@@ -162,6 +163,7 @@ async function getInterTest(req, res) {
     }}`;
 
     const result = await monday.api(query);
+    console.log(`boards -> result`, result);
 
     // utilsService.sendLog('complexity1', result.data.complexity)
     const _boards = result.data.boards;
