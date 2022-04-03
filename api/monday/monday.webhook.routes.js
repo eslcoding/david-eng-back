@@ -1,14 +1,23 @@
-const router = require('express').Router();
-const { authenticationMiddleware } = require('../../middlewares/requireAuth.middleware');
+const router = require("express").Router();
+const {
+  authenticationMiddleware,
+} = require("../../middlewares/requireAuth.middleware");
 
-const {getInter, onUpdateColumns, getInterTest, getAuthToken} = require('./monday.controller');
+const {
+  getInter,
+  onUpdateColumns,
+  getInterTest,
+  getAuthToken,
+} = require("./monday.controller");
 
-router.post('/inter',authenticationMiddleware, getInter);
-router.post('/interTest',authenticationMiddleware, getInterTest);
-router.post('/updateColumns',authenticationMiddleware, onUpdateColumns);
-router.get('/auth', getAuthToken);
+router.post("/inter", authenticationMiddleware, getInter);
+router.post("/interTest", authenticationMiddleware, getInterTest);
+router.post("/updateColumns", authenticationMiddleware, onUpdateColumns);
+router.get("/auth", getAuthToken);
+router.get("/", (req, res) => {
+  res.send({ healthy: true });
+});
 // router.post('/updateColumns',authenticationMiddleware, testMailPdf);
-
 
 // router.post('/auto', mondayController.getWebHook);
 // router.post('/interItem',authenticationMiddleware, mondayController.getInterItem);
